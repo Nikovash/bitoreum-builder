@@ -1,3 +1,6 @@
+<p align="center"><img src="assets/logo.png" alt="Project Logo" width="200"/></p>
+
+
 # 🛠️ Bitoreum Builder
 
 A fully automated build script for compiling Crystal Bitoreum (or other forks) with support for multiple platforms and output formats. Includes debug, stripped, and not-stripped binaries with full checksum and compression automation.
