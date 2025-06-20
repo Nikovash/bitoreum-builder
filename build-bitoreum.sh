@@ -134,7 +134,7 @@ if [[ -f build.properties ]]; then
 else
     VERSION=$(date +%Y%m%d-%H%M%S)
     echo "release-version=$VERSION" > build.properties
-    log "build.properties not found — using fallback version: $VERSION"
+    log "Warning! build.properties not found — using fallback version: $VERSION"
 fi
 
 COIN_NAME=bitoreum
@@ -152,12 +152,13 @@ for TYPE in "" "_debug" "_not_strip"; do
     echo "openssl-sha256:" >> "$CHECKSUM_FILE"
     sha256sum * >> "$CHECKSUM_FILE"
 
-    # Only compress if binaries are there
-    if ls | grep -qE 'bitoreum|bitoreumd|bitoreum-cli'; then
-        tar -cf - . | gzip -9 > "${COMPRESS_DIR}/${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
-        log "Compressed ${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
+    # Only compress if directory has content
+    if [[ "$(ls -A .)" ]]; then
+        ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
+        tar -czf "${COMPRESS_DIR}/${ARCHIVE_NAME}" . || err "tar failed for $TYPE"
+        log "Compressed: $ARCHIVE_NAME"
     else
-        err "No binaries found in $OUT_DIR — skipping compression."
+        err "No files to compress in $OUT_DIR — skipped."
     fi
 done
 
@@ -168,12 +169,13 @@ if ls *.tar.gz >/dev/null 2>&1; then
         echo "sha256: $(shasum "$FILE")" >> "checksums-${VERSION}.txt"
         echo "openssl-sha256: $(sha256sum "$FILE")" >> "checksums-${VERSION}.txt"
     done
-    log "Compression complete. Files saved in $COMPRESS_DIR"
+    log "Compression complete! Files saved in $COMPRESS_DIR"
 else
     err "No .tar.gz files were created."
 fi
 
+# === Stay inside screen with message ===
 echo
-echo -e "\033[1;32m Build finished.\033[0m"
-echo -e "You're inside the screen session named \033[1;36mBuild\033[0m."
-echo -e "Press \033[1;33mCtrl+A D\033[0m to detach or type \033[1;33mexit\033[0m to leave."
+echo -e "\033[1;32mBuild process complete.\033[0m"
+echo -e "You're still inside the screen session named \033[1;36mBuild\033[0m."
+echo -e "To detach: \033[1;33mCtrl+A D\033[0m  |  To leave: \033[1;33mexit\033[0m"
