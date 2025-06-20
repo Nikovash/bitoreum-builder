@@ -22,4 +22,4 @@ chmod +x build-bitoreum.sh
 
 ## 🪪 License
 
-MIT © 2025 YOUR NAME
+MIT © 2025 Ramen Wukong c/o IoVa Systems a NikoVash Empire Battalion
