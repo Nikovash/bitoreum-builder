@@ -14,7 +14,7 @@ Automated build script for compiling Bitoreum Core or forks with debug, stripped
 ## 📦 Usage
 
 ```bash
-git clone https://github.com/yourusername/bitoreum-builder.git
+git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
 chmod +x build-bitoreum.sh
 ./build-bitoreum.sh
