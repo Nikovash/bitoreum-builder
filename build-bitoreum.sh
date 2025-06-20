@@ -1,26 +1,12 @@
 #!/bin/bash
 set -e
-
 log() {
     echo -e "\033[1;32m[INFO] $1\033[0m"
 }
 err() {
     echo -e "\033[1;31m[ERROR] $1\033[0m" >&2
 }
-
-# === Launch screen if not already inside ===
-if [[ "$1" != "--in-screen" ]]; then
-    if ! screen -list | grep -q "\.Build"; then
-        log "Opening screen session 'Build' (attached)..."
-        exec screen -S Build bash -c "$0 --in-screen"
-    else
-        log "Screen session 'Build' already exists. You can reattach with:"
-        echo "    screen -r Build"
-        exit 1
-    fi
-fi
-
-log "Inside screen session 'Build'..."
+log "Starting build..."
 
 # === System setup ===
 sudo apt update
@@ -134,7 +120,7 @@ if [[ -f build.properties ]]; then
 else
     VERSION=$(date +%Y%m%d-%H%M%S)
     echo "release-version=$VERSION" > build.properties
-    log "Warning! build.properties not found — using fallback version: $VERSION"
+    log "Warning, build.properties not found — using fallback version: $VERSION"
 fi
 
 COIN_NAME=bitoreum
@@ -169,13 +155,12 @@ if ls *.tar.gz >/dev/null 2>&1; then
         echo "sha256: $(shasum "$FILE")" >> "checksums-${VERSION}.txt"
         echo "openssl-sha256: $(sha256sum "$FILE")" >> "checksums-${VERSION}.txt"
     done
-    log "Compression complete! Files saved in $COMPRESS_DIR"
+    log "Compression complete. Files saved in $COMPRESS_DIR"
 else
     err "No .tar.gz files were created."
 fi
 
-# === Stay inside screen with message ===
+# === Final message ===
 echo
 echo -e "\033[1;32mBuild process complete.\033[0m"
-echo -e "You're still inside the screen session named \033[1;36mBuild\033[0m."
-echo -e "To detach: \033[1;33mCtrl+A D\033[0m  |  To leave: \033[1;33mexit\033[0m"
+echo -e "Output folder: \033[1;36m$COMPRESS_DIR\033[0m"
