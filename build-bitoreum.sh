@@ -108,7 +108,7 @@ make -j$(nproc) HOST=${HOST_TRIPLE} 2>&1 | tee build.log
 cd ..
 touch build.log config.log
 ./autogen.sh
-./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" 2>&1 | tee config.log
+./configure --prefix="$`pwd`/depends/${HOST_TRIPLE}" 2>&1 | tee config.log
 make -j$(nproc) 2>&1 | tee build.log
 
 # === Copy and organize outputs ===
@@ -124,25 +124,40 @@ strip "${BUILD_DIR}/bitoreum-build/"*
 make clean && make distclean
 touch build_debug.log config_debug.log
 ./autogen.sh
-./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" --disable-tests --enable-debug 2>&1 | tee config_debug.log
+./configure --prefix="$`pwd`/depends/${HOST_TRIPLE}" --disable-tests --enable-debug 2>&1 | tee config_debug.log
 make -j$(nproc) 2>&1 | tee build_debug.log
 mv src/{bitoreum-cli,bitoreumd,bitoreum-tx,qt/bitoreum-qt} "${BUILD_DIR}_debug/bitoreum-build"
 
-# === Version & packaging ===
-VERSION=$(grep '^release-version=' build.properties | cut -d'=' -f2)
+# === Get version string ===
+if [[ -f build.properties ]]; then
+    VERSION=$(grep '^release-version=' build.properties | cut -d'=' -f2)
+else
+    VERSION=$(date +%Y%m%d-%H%M%S)
+    echo "release-version=$VERSION" > build.properties
+    log "build.properties not found — using fallback version: $VERSION"
+fi
+
 COIN_NAME=bitoreum
 ARCH_TYPE=$(uname -m)
 OS="$(. /etc/os-release && echo "${ID}-${VERSION_ID}")"
 
+# === Compress and checksum ===
 for TYPE in "" "_debug" "_not_strip"; do
     OUT_DIR="${BUILD_DIR}${TYPE}"
-    cd "$OUT_DIR"
+    cd "$OUT_DIR" || continue
+
     CHECKSUM_FILE="checksums-${VERSION}.txt"
     echo "sha256:" > "$CHECKSUM_FILE"
     shasum * >> "$CHECKSUM_FILE"
     echo "openssl-sha256:" >> "$CHECKSUM_FILE"
     sha256sum * >> "$CHECKSUM_FILE"
-    tar -cf - -C "$OUT_DIR" . | gzip -9 > "${COMPRESS_DIR}/${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
+
+    if compgen -G "*" > /dev/null; then
+        tar -cf - . | gzip -9 > "${COMPRESS_DIR}/${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
+        log "Compressed ${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
+    else
+        err "❌ No files found in $OUT_DIR to compress."
+    fi
 done
 
 cd "$COMPRESS_DIR"
@@ -151,4 +166,4 @@ for FILE in *.tar.gz; do
     echo "openssl-sha256: $(sha256sum "$FILE")" >> "checksums-${VERSION}.txt"
 done
 
-log "✅ Build completed and ready for upload!"
+log "Build and completed! Files are in: $COMPRESS_DIR. Ready for upload"
