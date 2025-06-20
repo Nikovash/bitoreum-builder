@@ -10,7 +10,7 @@ A fully automated build script for compiling Crystal Bitoreum (or other forks) w
 ## 🚀 Features
 
 - ✅ Updates & Upgrades Distro
-- ✅ Checks & installs for needed software and dependencies
+- ✅ Checks for & installs needed software/dependencies
 - ✅ Python 3.10.17 installer (first-run only)
 - ✅ Clone from `main` or any custom branch
 - ✅ Select build target:
