@@ -68,7 +68,7 @@ echo "1) Linux 64-bit        (x86_64-pc-linux-gnu)"
 echo "2) Linux 32-bit        (i686-pc-linux-gnu)"
 echo "3) Linux ARM 32-bit    (arm-linux-gnueabihf)"
 echo "4) Linux ARM 64-bit    (aarch64-linux-gnu)"
-echo "5) ❌ Cancel and exit"
+echo "5) Cancel and exit"
 echo
 
 ARCH_NATIVE=$(uname -m)
@@ -108,7 +108,7 @@ make -j$(nproc) HOST=${HOST_TRIPLE} 2>&1 | tee build.log
 cd ..
 touch build.log config.log
 ./autogen.sh
-./configure --prefix="$`pwd`/depends/${HOST_TRIPLE}" 2>&1 | tee config.log
+./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" 2>&1 | tee config.log
 make -j$(nproc) 2>&1 | tee build.log
 
 # === Copy and organize outputs ===
@@ -124,7 +124,7 @@ strip "${BUILD_DIR}/bitoreum-build/"*
 make clean && make distclean
 touch build_debug.log config_debug.log
 ./autogen.sh
-./configure --prefix="$`pwd`/depends/${HOST_TRIPLE}" --disable-tests --enable-debug 2>&1 | tee config_debug.log
+./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" --disable-tests --enable-debug 2>&1 | tee config_debug.log
 make -j$(nproc) 2>&1 | tee build_debug.log
 mv src/{bitoreum-cli,bitoreumd,bitoreum-tx,qt/bitoreum-qt} "${BUILD_DIR}_debug/bitoreum-build"
 
@@ -152,18 +152,28 @@ for TYPE in "" "_debug" "_not_strip"; do
     echo "openssl-sha256:" >> "$CHECKSUM_FILE"
     sha256sum * >> "$CHECKSUM_FILE"
 
-    if compgen -G "*" > /dev/null; then
+    # Only compress if binaries are there
+    if ls | grep -qE 'bitoreum|bitoreumd|bitoreum-cli'; then
         tar -cf - . | gzip -9 > "${COMPRESS_DIR}/${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
         log "Compressed ${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
     else
-        err "❌ No files found in $OUT_DIR to compress."
+        err "No binaries found in $OUT_DIR — skipping compression."
     fi
 done
 
+# === Global checksum file ===
 cd "$COMPRESS_DIR"
-for FILE in *.tar.gz; do
-    echo "sha256: $(shasum "$FILE")" >> "checksums-${VERSION}.txt"
-    echo "openssl-sha256: $(sha256sum "$FILE")" >> "checksums-${VERSION}.txt"
-done
+if ls *.tar.gz >/dev/null 2>&1; then
+    for FILE in *.tar.gz; do
+        echo "sha256: $(shasum "$FILE")" >> "checksums-${VERSION}.txt"
+        echo "openssl-sha256: $(sha256sum "$FILE")" >> "checksums-${VERSION}.txt"
+    done
+    log "Compression complete. Files saved in $COMPRESS_DIR"
+else
+    err "No .tar.gz files were created."
+fi
 
-log "Build and completed! Files are in: $COMPRESS_DIR. Ready for upload"
+echo
+echo -e "\033[1;32m Build finished.\033[0m"
+echo -e "You're inside the screen session named \033[1;36mBuild\033[0m."
+echo -e "Press \033[1;33mCtrl+A D\033[0m to detach or type \033[1;33mexit\033[0m to leave."
