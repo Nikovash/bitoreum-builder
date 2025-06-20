@@ -1,11 +1,13 @@
 #!/bin/bash
 set -e
+
 log() {
     echo -e "\033[1;32m[INFO] $1\033[0m"
 }
 err() {
     echo -e "\033[1;31m[ERROR] $1\033[0m" >&2
 }
+
 log "Starting build..."
 
 # === System setup ===
@@ -134,17 +136,19 @@ for TYPE in "" "_debug" "_not_strip"; do
 
     CHECKSUM_FILE="checksums-${VERSION}.txt"
     echo "sha256:" > "$CHECKSUM_FILE"
-    shasum * >> "$CHECKSUM_FILE"
+    find . -type f -exec shasum {} \; >> "$CHECKSUM_FILE"
     echo "openssl-sha256:" >> "$CHECKSUM_FILE"
-    sha256sum * >> "$CHECKSUM_FILE"
+    find . -type f -exec sha256sum {} \; >> "$CHECKSUM_FILE"
 
-    # Only compress if directory has content
-    if [[ "$(ls -A .)" ]]; then
+    echo -e "\n📂 Contents of $OUT_DIR:"
+    ls -lh
+
+    if [[ -f bitoreumd && -f bitoreum-cli ]]; then
         ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
-        tar -czf "${COMPRESS_DIR}/${ARCHIVE_NAME}" . || err "tar failed for $TYPE"
+        tar -cf - . | gzip -9 > "${COMPRESS_DIR}/${ARCHIVE_NAME}" || err "❌ tar failed for $TYPE"
         log "Compressed: $ARCHIVE_NAME"
     else
-        err "No files to compress in $OUT_DIR — skipped."
+        err "Missing binaries in $OUT_DIR — skipping compression."
     fi
 done
 
@@ -163,4 +167,4 @@ fi
 # === Final message ===
 echo
 echo -e "\033[1;32mBuild process complete.\033[0m"
-echo -e "Output folder: \033[1;36m$COMPRESS_DIR\033[0m"
+echo -e "Artifacts are in: \033[1;36m$COMPRESS_DIR\033[0m"
