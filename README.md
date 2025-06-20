@@ -43,6 +43,8 @@ git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
 chmod +x build-bitoreum.sh
 screen -S build
+```
+```bash
 ./build-bitoreum.sh
 ```
 * Screen changed from automatic to manual usage, due to weird behavior on older Distros
