@@ -104,8 +104,8 @@ BUILD_DIR="$HOME/bitoreum-build/build"
 COMPRESS_DIR="$HOME/bitoreum-build/compressed"
 mkdir -p "${BUILD_DIR}/bitoreum-build" "${BUILD_DIR}_not_strip/bitoreum-build" "${BUILD_DIR}_debug/bitoreum-build" "$COMPRESS_DIR"
 
-cp src/{bitoreum-cli,bitoreumd,bitoreum-tx,qt/bitoreum-qt} "${BUILD_DIR}/bitoreum-build"
-mv src/{bitoreum-cli,bitoreumd,bitoreum-tx,qt/bitoreum-qt} "${BUILD_DIR}_not_strip/bitoreum-build"
+cp src/bitoreum-cli src/bitoreumd src/bitoreum-tx src/qt/bitoreum-qt "${BUILD_DIR}/bitoreum-build"
+mv src/bitoreum-cli src/bitoreumd src/bitoreum-tx src/qt/bitoreum-qt "${BUILD_DIR}_not_strip/bitoreum-build"
 strip "${BUILD_DIR}/bitoreum-build/"*
 
 # === Build debug version ===
@@ -114,7 +114,7 @@ touch build_debug.log config_debug.log
 ./autogen.sh
 ./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" --disable-tests --enable-debug 2>&1 | tee config_debug.log
 make -j$(nproc) 2>&1 | tee build_debug.log
-mv src/{bitoreum-cli,bitoreumd,bitoreum-tx,qt/bitoreum-qt} "${BUILD_DIR}_debug/bitoreum-build"
+mv src/bitoreum-cli src/bitoreumd src/bitoreum-tx src/qt/bitoreum-qt "${BUILD_DIR}_debug/bitoreum-build"
 
 # === Get version string ===
 if [[ -f build.properties ]]; then
@@ -131,16 +131,18 @@ OS="$(. /etc/os-release && echo "${ID}-${VERSION_ID}")"
 
 # === Compress and checksum ===
 for TYPE in "" "_debug" "_not_strip"; do
-    OUT_DIR="${BUILD_DIR}${TYPE}"
-    cd "$OUT_DIR" || continue
+    OUTER_DIR="${BUILD_DIR}${TYPE}"
+    BIN_DIR="${OUTER_DIR}/bitoreum-build"
+    CHECKSUM_FILE="${BIN_DIR}/checksums-${VERSION}.txt"
 
-    CHECKSUM_FILE="checksums-${VERSION}.txt"
+    cd "$BIN_DIR" || continue
+
     echo "sha256:" > "$CHECKSUM_FILE"
     find . -type f -exec shasum {} \; >> "$CHECKSUM_FILE"
     echo "openssl-sha256:" >> "$CHECKSUM_FILE"
     find . -type f -exec sha256sum {} \; >> "$CHECKSUM_FILE"
 
-    echo -e "\n📂 Contents of $OUT_DIR:"
+    echo -e "\n📂 Contents of $BIN_DIR:"
     ls -lh
 
     if [[ -f bitoreumd && -f bitoreum-cli ]]; then
@@ -148,23 +150,23 @@ for TYPE in "" "_debug" "_not_strip"; do
         tar -cf - . | gzip -9 > "${COMPRESS_DIR}/${ARCHIVE_NAME}" || err "tar failed for $TYPE"
         log "Compressed: $ARCHIVE_NAME"
     else
-        err "Missing binaries in $OUT_DIR — skipping compression."
+        err "Missing binaries in $BIN_DIR — skipping compression."
     fi
 done
 
-# === Global checksum file ===
+# === Final global checksum (for all .tar.gz files) ===
 cd "$COMPRESS_DIR"
 if ls *.tar.gz >/dev/null 2>&1; then
+    GLOBAL_SUM="checksums-${VERSION}.txt"
     for FILE in *.tar.gz; do
-        echo "sha256: $(shasum "$FILE")" >> "checksums-${VERSION}.txt"
-        echo "openssl-sha256: $(sha256sum "$FILE")" >> "checksums-${VERSION}.txt"
+        echo "sha256: $(shasum "$FILE")" >> "$GLOBAL_SUM"
+        echo "openssl-sha256: $(sha256sum "$FILE")" >> "$GLOBAL_SUM"
     done
     log "Compression complete. Files saved in $COMPRESS_DIR"
 else
     err "No .tar.gz files were created."
 fi
 
-# === Final message ===
 echo
 echo -e "\033[1;32mBuild process complete.\033[0m"
 echo -e "Artifacts are in: \033[1;36m$COMPRESS_DIR\033[0m"
