@@ -9,7 +9,6 @@ A fully automated build script for compiling Crystal Bitoreum (or other forks) w
 
 ## 🚀 Features
 
-- ✅ Auto-attached `screen` session for interactive use
 - ✅ Python 3.10.17 installer (first-run only)
 - ✅ Clone from `main` or any custom branch
 - ✅ Select build target:
@@ -43,3 +42,5 @@ cd bitoreum-builder
 chmod +x build-bitoreum.sh
 screen -S build
 ./build-bitoreum.sh
+```
+Screen changed from automatic to manual usage, do to weird behavior on older Distros
