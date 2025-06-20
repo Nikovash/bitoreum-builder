@@ -41,4 +41,5 @@ A fully automated build script for compiling Crystal Bitoreum (or other forks) w
 git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
 chmod +x build-bitoreum.sh
+screen -S build
 ./build-bitoreum.sh
