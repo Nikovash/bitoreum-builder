@@ -145,7 +145,7 @@ for TYPE in "" "_debug" "_not_strip"; do
 
     if [[ -f bitoreumd && -f bitoreum-cli ]]; then
         ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
-        tar -cf - . | gzip -9 > "${COMPRESS_DIR}/${ARCHIVE_NAME}" || err "❌ tar failed for $TYPE"
+        tar -cf - . | gzip -9 > "${COMPRESS_DIR}/${ARCHIVE_NAME}" || err "tar failed for $TYPE"
         log "Compressed: $ARCHIVE_NAME"
     else
         err "Missing binaries in $OUT_DIR — skipping compression."
