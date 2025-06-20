@@ -45,4 +45,4 @@ chmod +x build-bitoreum.sh
 screen -S build
 ./build-bitoreum.sh
 ```
-Screen changed from automatic to manual usage, do to weird behavior on older Distros
+* Screen changed from automatic to manual usage, due to weird behavior on older Distros
