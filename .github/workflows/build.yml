@@ -1,0 +1,14 @@
+name: Lint Bash Script
+
+on: [push, pull_request]
+
+jobs:
+  shellcheck:
+    name: Run ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ShellCheck
+        run: sudo apt-get install -y shellcheck
+      - name: Lint Script
+        run: shellcheck build-bitoreum.sh
