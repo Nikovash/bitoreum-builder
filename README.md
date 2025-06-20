@@ -1,47 +1,53 @@
-<p align="center"><img src="BB_logo.png" alt="Project Logo" width="200"/></p>
-
+<p align="center">
+  <img src="BB_logo.png" alt="Project Logo" width="200"/>
+</p>
 
 # 🛠️ Bitoreum Builder
 
-A fully automated build script for compiling Crystal Bitoreum (or other forks) with support for multiple platforms and output formats. Includes debug, stripped, and not-stripped binaries with full checksum and compression automation.
+A fully automated build script for compiling [Crystal Bitoreum](https://github.com/Nikovash/bitoreum) or other forks.  
+Supports multiple target architectures and generates stripped, not-stripped, and debug builds, each with full checksums and compressed archives.
 
 ---
 
 ## 🚀 Features
 
-- ✅ Updates & Upgrades Distro
-- ✅ Checks for & installs needed software/dependencies
-- ✅ Python 3.10.17 installer (first-run only)
-- ✅ Clone from `main` or any custom branch
-- ✅ Select build target:
-  - Linux 64-bit (`x86_64-pc-linux-gnu`)
-  - Linux 32-bit (`i686-pc-linux-gnu`)
-  - ARM 32-bit (`arm-linux-gnueabihf`)
-  - ARM 64-bit (`aarch64-linux-gnu`)
-  - ❌ Cancel & Exit
-- ✅ Full debug build
-- ✅ Binary strip & not-strip modes
-- ✅ SHA + OpenSSL-style checksums
-- ✅ Auto `.tar.gz` compression for each output
+- ✅ System `update` & `upgrade`
+- ✅ Dependency check & `install`
+- ✅ Python 3.10.17 setup (if missing)
+- ✅ Clone from `main` or custom branch
+- ✅ Platform selection:
+  - 🖥️ Linux 64-bit
+  - 🖥️ Linux 32-bit
+  - 📱 Linux ARM 32-bit
+  - 📱 Linux ARM 64-bit
+  - ❌ Cancel and exit
+- ✅ Fully separate debug build
+- ✅ Stripped and unstripped binaries
+- ✅ Per-build and archive-level SHA + OpenSSL-style checksums
+- ✅ `.tar.gz` compression (max level)
 
 ---
 
 ## 📦 Requirements
 
 - Linux (Ubuntu 20.04+ recommended)
-- sudo privileges
-- Internet access
+- `sudo` privileges
+- Internet connection
+- Optional: `screen` (for remote session safety)
 
 ---
 
 ## 📥 Usage
 
-### 🔹 1. Clone and run
+### 🔹 1. Clone and prepare
 
 ```bash
 git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
 chmod +x build-bitoreum.sh
+```
+Launch a screen (Optional but reccomended):
+```bash
 screen -S build
 ```
 Once insides the screen we can now run the app:
@@ -50,7 +56,7 @@ Once insides the screen we can now run the app:
 ```
 You can disconnect the screen at any time by pressing:
 ```bash
-CNTL+A +D
+CNTL+A then D
 ```
 And recooenct at any time with:
 ```bash
