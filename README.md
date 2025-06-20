@@ -44,7 +44,21 @@ cd bitoreum-builder
 chmod +x build-bitoreum.sh
 screen -S build
 ```
+Once insides the screen we can now run the app:
 ```bash
 ./build-bitoreum.sh
 ```
-* Screen changed from automatic to manual usage, due to weird behavior on older Distros
+You can disconnect the screen at any time by pressing:
+```bash
+CNTL+A +D
+```
+And recooenct at any time with:
+```bash
+screen -r
+```
+If this is a remote session and the screen is still attached to a screen that was from a dropped connection you can force detact and reattach it to your current session with:
+```bash
+screen -D -r
+```
+
+<p align="center">* Screen changed from automatic to manual usage, due to weird behavior on older Distros</p>
