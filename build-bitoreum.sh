@@ -56,27 +56,44 @@ echo "1) Linux 64-bit        (x86_64-pc-linux-gnu)"
 echo "2) Linux 32-bit        (i686-pc-linux-gnu)"
 echo "3) Linux ARM 32-bit    (arm-linux-gnueabihf)"
 echo "4) Linux ARM 64-bit    (aarch64-linux-gnu)"
-echo "5) Cancel and exit"
+echo "5) Raspberry Pi 4+     (aarch64-linux-gnu)"
+echo "6) Cancel and exit"
 echo
 
 ARCH_NATIVE=$(uname -m)
-case "$ARCH_NATIVE" in
-  x86_64) SUGGESTED="1" ;;
-  i686|i386) SUGGESTED="2" ;;
-  armv7l) SUGGESTED="3" ;;
-  aarch64) SUGGESTED="4" ;;
-  *) SUGGESTED="1" ;;
-esac
+IS_PI4_OR_NEWER=false
 
-read -rp "Enter your choice [1-5] (default: $SUGGESTED): " ARCH_CHOICE
+if [[ -f /proc/device-tree/model ]]; then
+    PI_MODEL=$(tr -d '\0' < /proc/device-tree/model)
+    if echo "$PI_MODEL" | grep -Eq "Raspberry Pi [4-9]"; then
+        IS_PI4_OR_NEWER=true
+    fi
+fi
+
+if $IS_PI4_OR_NEWER; then
+  SUGGESTED="5"
+else
+  case "$ARCH_NATIVE" in
+    x86_64) SUGGESTED="1" ;;
+    i686|i386) SUGGESTED="2" ;;
+    armv7l) SUGGESTED="3" ;;
+    aarch64) SUGGESTED="4" ;;
+    *) SUGGESTED="1" ;;
+  esac
+fi
+
+read -rp "Enter your choice [1-6] (default: $SUGGESTED): " ARCH_CHOICE
 ARCH_CHOICE=${ARCH_CHOICE:-$SUGGESTED}
+
+PI4_BUILD=false
 
 case "$ARCH_CHOICE" in
   1) HOST_TRIPLE="x86_64-pc-linux-gnu" ;;
   2) HOST_TRIPLE="i686-pc-linux-gnu" ;;
   3) HOST_TRIPLE="arm-linux-gnueabihf" ;;
   4) HOST_TRIPLE="aarch64-linux-gnu" ;;
-  5)
+  5) HOST_TRIPLE="aarch64-linux-gnu"; PI4_BUILD=true ;;
+  6)
     echo -e "\033[1;31m[EXIT] Build cancelled by user.\033[0m"
     exit 0
     ;;
@@ -126,7 +143,11 @@ else
 fi
 
 COIN_NAME=bitoreum
-ARCH_TYPE=$(uname -m)
+if $PI4_BUILD; then
+    ARCH_TYPE="pi4"
+else
+    ARCH_TYPE=$(uname -m)
+fi
 OS="$(. /etc/os-release && echo "${ID}-${VERSION_ID}")"
 
 # === Compress and checksum ===
