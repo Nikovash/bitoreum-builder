@@ -10,6 +10,8 @@ A: The script supports Debian fork Linux Distrobutins wit hthe following archite
 - Linux 32-bit (`i686-pc-linux-gnu`)
 - Linux ARM 32-bit (`arm-linux-gnueabihf`)
 - Linux ARM 64-bit (`aarch64-linux-gnu`)
+- Raspberry Pi 4 or better (`aarch64-linux-gnu`)
+- Ampere (`aarch64-linux-gnu`)
 
 ---
 
