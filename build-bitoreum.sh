@@ -57,11 +57,13 @@ echo "2) Linux 32-bit        (i686-pc-linux-gnu)"
 echo "3) Linux ARM 32-bit    (arm-linux-gnueabihf)"
 echo "4) Linux ARM 64-bit    (aarch64-linux-gnu)"
 echo "5) Raspberry Pi 4+     (aarch64-linux-gnu)"
-echo "6) Cancel and exit"
+echo "6) Oracle Ampere ARM   (aarch64-linux-gnu)"
+echo "7) Cancel and exit"
 echo
 
 ARCH_NATIVE=$(uname -m)
 IS_PI4_OR_NEWER=false
+IS_AMPERE=false
 
 if [[ -f /proc/device-tree/model ]]; then
     PI_MODEL=$(tr -d '\0' < /proc/device-tree/model)
@@ -70,8 +72,15 @@ if [[ -f /proc/device-tree/model ]]; then
     fi
 fi
 
+# Detect Oracle Ampere CPU
+if lscpu | grep -qi "Ampere"; then
+    IS_AMPERE=true
+fi
+
 if $IS_PI4_OR_NEWER; then
   SUGGESTED="5"
+elif $IS_AMPERE; then
+  SUGGESTED="6"
 else
   case "$ARCH_NATIVE" in
     x86_64) SUGGESTED="1" ;;
@@ -82,10 +91,11 @@ else
   esac
 fi
 
-read -rp "Enter your choice [1-6] (default: $SUGGESTED): " ARCH_CHOICE
+read -rp "Enter your choice [1-7] (default: $SUGGESTED): " ARCH_CHOICE
 ARCH_CHOICE=${ARCH_CHOICE:-$SUGGESTED}
 
 PI4_BUILD=false
+AMPERE_BUILD=false
 
 case "$ARCH_CHOICE" in
   1) HOST_TRIPLE="x86_64-pc-linux-gnu" ;;
@@ -93,7 +103,8 @@ case "$ARCH_CHOICE" in
   3) HOST_TRIPLE="arm-linux-gnueabihf" ;;
   4) HOST_TRIPLE="aarch64-linux-gnu" ;;
   5) HOST_TRIPLE="aarch64-linux-gnu"; PI4_BUILD=true ;;
-  6)
+  6) HOST_TRIPLE="aarch64-linux-gnu"; AMPERE_BUILD=true ;;
+  7)
     echo -e "\033[1;31m[EXIT] Build cancelled by user.\033[0m"
     exit 0
     ;;
@@ -145,6 +156,8 @@ fi
 COIN_NAME=bitoreum
 if $PI4_BUILD; then
     ARCH_TYPE="pi4"
+elif $AMPERE_BUILD; then
+    ARCH_TYPE="ampere-aarch64"
 else
     ARCH_TYPE=$(uname -m)
 fi
