@@ -21,6 +21,7 @@ Supports multiple target architectures and generates stripped, not-stripped, and
   - 📱 Linux ARM 32-bit
   - 📱 Linux ARM 64-bit
   - Raspberry Pi 4 or bettter
+  - Ampere
   - ❌ Cancel and exit
 - ✅ Fully separate debug build
 - ✅ Stripped and unstripped binaries
