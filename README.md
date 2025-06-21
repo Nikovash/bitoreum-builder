@@ -41,8 +41,13 @@ Supports multiple target architectures and generates stripped, not-stripped, and
 
 ## 📥 Usage
 
-### 🔹 1. Clone and prepare
+### 🔹 1. install git
+```bash
+sudo apt update
+sudo apt install git
+```
 
+### 🔹 2. Clone and prepare
 ```bash
 git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
