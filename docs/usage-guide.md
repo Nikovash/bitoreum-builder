@@ -56,11 +56,13 @@ Clone from 'main' or specify a branch name (case-sensitive)? [main/branch-name]:
 2) Linux 32-bit        (i686-pc-linux-gnu)
 3) Linux ARM 32-bit    (arm-linux-gnueabihf)
 4) Linux ARM 64-bit    (aarch64-linux-gnu)
-5) Cancel and exit
+5) Raspberry Pi 4+     (aarch64-linux-gnu)
+6) Oracle Ampere ARM   (aarch64-linux-gnu)
+7) Cancel and exit
 ```
 
 - Choose the number corresponding to your platform.
-- Option 5 will exit the script.
+- Option 7 will exit the script.
 
 ---
 
