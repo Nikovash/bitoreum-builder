@@ -1,0 +1,47 @@
+#!/bin/bash
+
+LOG_FILE="/var/log/upload-builds.log"
+WEBDAV_URL="web address of ownCloud server"
+COMPRESS_DIR=""
+SHARE_TOKEN=""
+PROJECT=""
+
+# Parse flags
+if [[ $# -eq 0 ]]; then
+    echo "Error: Unknown flag '$1'" | tee -a "$LOG_FILE"
+    echo "Usage: $0 --yerbas | --bitoreum"
+    exit 1
+fi
+
+if [[ "$1" == "--yerbas" ]]; then
+    PROJECT="yerbas"
+    COMPRESS_DIR="$HOME/yerbas-build/compressed"
+    SHARE_TOKEN=""
+elif [[ "$1" == "--bitoreum" ]]; then
+    PROJECT="bitoreum"
+    COMPRESS_DIR="$HOME/bitoreum-build/compressed"
+    SHARE_TOKEN=""
+else
+    echo "Error: Unknown flag '$1'"
+    echo "Usage: $0 --yerbas | --bitoreum"
+    exit 1
+fi
+
+# Upload files
+for file in "$COMPRESS_DIR"/*; do
+    if [ -f "$file" ]; then
+        FILENAME=$(basename "$file")
+        echo "Uploading $FILENAME from $COMPRESS_DIR..."
+        RESPONSE=$(curl -s -w "%{http_code}" -o /dev/null -T "$file" -u "$SHARE_TOKEN": -X PUT "$WEBDAV_URL/$FILENAME")
+
+        if [[ "$RESPONSE" == "201" || "$RESPONSE" == "204" ]]; then
+            STATUS="SUCCESS"
+        else
+            STATUS="FAIL ($RESPONSE)"
+        fi
+
+        echo "$(date '+%Y-%m-%d %H:%M:%S') [$PROJECT] $FILENAME -> $STATUS" >> "$LOG_FILE"
+    fi
+done
+
+echo "Upload completed! Log written to $LOG_FILE"
