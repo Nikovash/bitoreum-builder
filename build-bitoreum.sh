@@ -171,21 +171,21 @@ for TYPE in "" "_debug" "_not_strip"; do
     BIN_DIR="${OUTER_DIR}/${BIN_SUBDIR}"
     CHECKSUM_FILE="${BIN_DIR}/checksums-${VERSION}.txt"
 
-    cd "$BIN_DIR" || continue
+    cd "$OUTER_DIR" || continue
 
     echo "sha256:" > "$CHECKSUM_FILE"
     # Use SHA-256 for cross-platform consistency. "shasum" defaults to
     # SHA-1 which mismatches the "sha256" label.
-    find . -type f -exec shasum -a 256 {} \; >> "$CHECKSUM_FILE"
+    find "$BIN_SUBDIR" -type f -exec shasum -a 256 {} \; >> "$CHECKSUM_FILE"
     echo "openssl-sha256:" >> "$CHECKSUM_FILE"
-    find . -type f -exec sha256sum {} \; >> "$CHECKSUM_FILE"
+    find "$BIN_SUBDIR" -type f -exec sha256sum {} \; >> "$CHECKSUM_FILE"
 
     echo -e "\n📂 Contents of $BIN_DIR:"
-    ls -lh
+    ls -lh "$BIN_DIR"
 
-    if [[ -f bitoreumd && -f bitoreum-cli ]]; then
+    if [[ -f "${BIN_DIR}/bitoreumd" && -f "${BIN_DIR}/bitoreum-cli" ]]; then
         ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
-        tar -cf - . | gzip -9 > "${COMPRESS_DIR}/${ARCHIVE_NAME}" || err "tar failed for $TYPE"
+        tar -cf - "$BIN_SUBDIR" | gzip -9 > "${COMPRESS_DIR}/${ARCHIVE_NAME}" || err "tar failed for $TYPE"
         log "Compressed: $ARCHIVE_NAME"
     else
         err "Missing binaries in $BIN_DIR — skipping compression."
