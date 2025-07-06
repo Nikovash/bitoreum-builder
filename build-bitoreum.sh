@@ -135,7 +135,8 @@ BIN_SUBDIR="bitoreum-v${VERSION}"
 
 touch build.log config.log
 ./autogen.sh
-./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" 2>&1 | tee config.log
+./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" \
+    --disable-tests --disable-bench 2>&1 | tee config.log
 make -j$(nproc) 2>&1 | tee build.log
 
 # === Copy and organize outputs ===
@@ -151,7 +152,8 @@ strip "${BUILD_DIR}/${BIN_SUBDIR}/"*
 make clean && make distclean
 touch build_debug.log config_debug.log
 ./autogen.sh
-./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" --disable-tests --enable-debug 2>&1 | tee config_debug.log
+./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" \
+    --disable-tests --disable-bench --enable-debug 2>&1 | tee config_debug.log
 make -j$(nproc) 2>&1 | tee build_debug.log
 mv src/bitoreum-cli src/bitoreumd src/bitoreum-tx src/qt/bitoreum-qt "${BUILD_DIR}_debug/${BIN_SUBDIR}"
 
