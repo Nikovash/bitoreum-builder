@@ -10,12 +10,16 @@ err() {
 
 log "Starting build..."
 
+IS_WINDOWS=false
+IS_PI4_OR_NEWER=false
+IS_AMPERE=false
+
 # === System setup ===
 sudo apt update
 sudo apt dist-upgrade -y
 sudo apt-get install -y git curl build-essential libtool autotools-dev automake pkg-config \
     python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
-    libxrender-dev libxft-dev libxrandr-dev libffi-dev aarch64-linux-gnu-g++
+    libxrender-dev libxft-dev libxrandr-dev libffi-dev aarch64-linux-gnu-g++ zip unzip
 
 # === Python 3.10.17 ===
 PYTHON_SRC="/usr/src/Python-3.10.17"
@@ -58,12 +62,11 @@ echo "3) Linux ARM 32-bit    (arm-linux-gnueabihf)"
 echo "4) Linux ARM 64-bit    (aarch64-linux-gnu)"
 echo "5) Raspberry Pi 4+     (aarch64-linux-gnu)"
 echo "6) Oracle Ampere ARM   (aarch64-linux-gnu)"
-echo "7) Cancel and exit"
+echo "7) Windows 64-bit      (x86_64-w64-mingw32)"
+echo "8) Cancel and exit"
 echo
 
 ARCH_NATIVE=$(uname -m)
-IS_PI4_OR_NEWER=false
-IS_AMPERE=false
 
 if [[ -f /proc/device-tree/model ]]; then
     PI_MODEL=$(tr -d '\0' < /proc/device-tree/model)
@@ -72,7 +75,6 @@ if [[ -f /proc/device-tree/model ]]; then
     fi
 fi
 
-# Detect Oracle Ampere CPU
 if lscpu | grep -qi "Ampere"; then
     IS_AMPERE=true
 fi
@@ -91,7 +93,7 @@ else
   esac
 fi
 
-read -rp "Enter your choice [1-7] (default: $SUGGESTED): " ARCH_CHOICE
+read -rp "Enter your choice [1-8] (default: $SUGGESTED): " ARCH_CHOICE
 ARCH_CHOICE=${ARCH_CHOICE:-$SUGGESTED}
 
 PI4_BUILD=false
@@ -104,15 +106,16 @@ case "$ARCH_CHOICE" in
   4) HOST_TRIPLE="aarch64-linux-gnu" ;;
   5) HOST_TRIPLE="aarch64-linux-gnu"; PI4_BUILD=true ;;
   6) HOST_TRIPLE="aarch64-linux-gnu"; AMPERE_BUILD=true ;;
-  7)
-    echo -e "\033[1;31m[EXIT] Build cancelled by user.\033[0m"
-    exit 0
-    ;;
-  *)
-    echo -e "\033[1;31m[ERROR] Invalid selection.\033[0m"
-    exit 1
-    ;;
+  7) HOST_TRIPLE="x86_64-w64-mingw32"; IS_WINDOWS=true ;;
+  8) echo -e "\033[1;31m[EXIT] Build cancelled by user.\033[0m"; exit 0 ;;
+  *) echo -e "\033[1;31m[ERROR] Invalid selection.\033[0m"; exit 1 ;;
 esac
+
+if $IS_WINDOWS; then
+  sudo apt-get install -y g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 nsis
+  sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+  sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+fi
 
 log "Using HOST=${HOST_TRIPLE}"
 
@@ -120,10 +123,9 @@ log "Using HOST=${HOST_TRIPLE}"
 touch build.log
 make -j$(nproc) HOST=${HOST_TRIPLE} 2>&1 | tee build.log
 
-# === Configure and build ===
 cd ..
 
-# === Get version string ===
+# === Versioning ===
 if [[ -f build.properties ]]; then
     VERSION=$(grep '^release-version=' build.properties | cut -d'=' -f2)
 else
@@ -133,35 +135,48 @@ else
 fi
 BIN_SUBDIR="bitoreum-v${VERSION}"
 
-touch build.log config.log
+# === Configure and build ===
 ./autogen.sh
 ./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" \
     --disable-tests --disable-bench 2>&1 | tee config.log
 make -j$(nproc) 2>&1 | tee build.log
 
-# === Copy and organize outputs ===
 BUILD_DIR="$HOME/bitoreum-build/build"
 COMPRESS_DIR="$HOME/bitoreum-build/compressed"
 mkdir -p "${BUILD_DIR}/${BIN_SUBDIR}" "${BUILD_DIR}_not_strip/${BIN_SUBDIR}" "${BUILD_DIR}_debug/${BIN_SUBDIR}" "$COMPRESS_DIR"
 
-cp src/bitoreum-cli src/bitoreumd src/bitoreum-tx src/qt/bitoreum-qt "${BUILD_DIR}/${BIN_SUBDIR}"
-mv src/bitoreum-cli src/bitoreumd src/bitoreum-tx src/qt/bitoreum-qt "${BUILD_DIR}_not_strip/${BIN_SUBDIR}"
-strip "${BUILD_DIR}/${BIN_SUBDIR}/"*
+BINFILES=(bitoreum-cli bitoreumd bitoreum-tx qt/bitoreum-qt)
+if $IS_WINDOWS; then
+  BINFILES=(bitoreum-cli.exe bitoreumd.exe bitoreum-tx.exe qt/bitoreum-qt.exe)
+fi
+
+for BIN in "${BINFILES[@]}"; do
+  cp "src/${BIN}" "${BUILD_DIR}/${BIN_SUBDIR}/"
+  cp "src/${BIN}" "${BUILD_DIR}_not_strip/${BIN_SUBDIR}/"
+done
+
+if ! $IS_WINDOWS; then
+  strip "${BUILD_DIR}/${BIN_SUBDIR}/"*
+fi
 
 # === Build debug version ===
 make clean && make distclean
-touch build_debug.log config_debug.log
 ./autogen.sh
 ./configure --prefix="$(pwd)/depends/${HOST_TRIPLE}" \
     --disable-tests --disable-bench --enable-debug 2>&1 | tee config_debug.log
 make -j$(nproc) 2>&1 | tee build_debug.log
-mv src/bitoreum-cli src/bitoreumd src/bitoreum-tx src/qt/bitoreum-qt "${BUILD_DIR}_debug/${BIN_SUBDIR}"
+
+for BIN in "${BINFILES[@]}"; do
+  cp "src/${BIN}" "${BUILD_DIR}_debug/${BIN_SUBDIR}/"
+done
 
 COIN_NAME=bitoreum
 if $PI4_BUILD; then
     ARCH_TYPE="pi4"
 elif $AMPERE_BUILD; then
     ARCH_TYPE="ampere-aarch64"
+elif $IS_WINDOWS; then
+    ARCH_TYPE="win64"
 else
     ARCH_TYPE=$(uname -m)
 fi
@@ -176,38 +191,31 @@ for TYPE in "" "_debug" "_not_strip"; do
     cd "$OUTER_DIR" || continue
 
     echo "sha256:" > "$CHECKSUM_FILE"
-    # Use SHA-256 for cross-platform consistency. "shasum" defaults to
-    # SHA-1 which mismatches the "sha256" label.
     find "$BIN_SUBDIR" -type f -exec shasum -a 256 {} \; >> "$CHECKSUM_FILE"
     echo "openssl-sha256:" >> "$CHECKSUM_FILE"
     find "$BIN_SUBDIR" -type f -exec sha256sum {} \; >> "$CHECKSUM_FILE"
 
-    echo -e "\n📂 Contents of $BIN_DIR:"
-    ls -lh "$BIN_DIR"
-
-    if [[ -f "${BIN_DIR}/bitoreumd" && -f "${BIN_DIR}/bitoreum-cli" ]]; then
-        ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
-        tar -cf - "$BIN_SUBDIR" | gzip -9 > "${COMPRESS_DIR}/${ARCHIVE_NAME}" || err "tar failed for $TYPE"
+    if [[ -f "${BIN_DIR}/${BINFILES[0]}" ]]; then
+        if $IS_WINDOWS; then
+            ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.zip"
+            zip -r "${COMPRESS_DIR}/${ARCHIVE_NAME}" "$BIN_SUBDIR" || err "zip failed for $TYPE"
+        else
+            ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
+            tar -cf - "$BIN_SUBDIR" | gzip -9 > "${COMPRESS_DIR}/${ARCHIVE_NAME}" || err "tar failed for $TYPE"
+        fi
         log "Compressed: $ARCHIVE_NAME"
     else
         err "Missing binaries in $BIN_DIR — skipping compression."
     fi
+
 done
 
-# === Final global checksum (for all .tar.gz files) ===
+# === Final checksum ===
 cd "$COMPRESS_DIR"
-if ls *.tar.gz >/dev/null 2>&1; then
-    GLOBAL_SUM="checksums-${VERSION}.txt"
-    for FILE in *.tar.gz; do
-        # Again ensure SHA-256 is used when generating archive level checksums
-        echo "sha256: $(shasum -a 256 "$FILE")" >> "$GLOBAL_SUM"
-        echo "openssl-sha256: $(sha256sum "$FILE")" >> "$GLOBAL_SUM"
-    done
-    log "Compression complete. Files saved in $COMPRESS_DIR"
-else
-    err "No .tar.gz files were created."
-fi
+GLOBAL_SUM="checksums-${VERSION}.txt"
+for FILE in *.{tar.gz,zip}; do
+    echo "sha256: $(shasum -a 256 "$FILE")" >> "$GLOBAL_SUM"
+    echo "openssl-sha256: $(sha256sum "$FILE")" >> "$GLOBAL_SUM"
+done
 
-echo
-echo -e "\033[1;32mBuild process complete.\033[0m"
-echo -e "Artifacts are in: \033[1;36m$COMPRESS_DIR\033[0m"
+log "Build complete. Artifacts are in: $COMPRESS_DIR"
