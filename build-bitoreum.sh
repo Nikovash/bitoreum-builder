@@ -19,7 +19,8 @@ sudo apt update
 sudo apt dist-upgrade -y
 sudo apt-get install -y git curl build-essential libtool autotools-dev automake pkg-config \
     python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
-    libxrender-dev libxft-dev libxrandr-dev libffi-dev aarch64-linux-gnu-g++ zip unzip
+    libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip
+
 
 # === Python 3.10.17 ===
 PYTHON_SRC="/usr/src/Python-3.10.17"
