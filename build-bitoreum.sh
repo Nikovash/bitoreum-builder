@@ -19,8 +19,7 @@ sudo apt update
 sudo apt dist-upgrade -y
 sudo apt-get install -y git curl build-essential libtool autotools-dev automake pkg-config \
     python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
-    libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip
-
+    libxrender-dev libxft-dev libxrandr-dev libffi-dev aarch64-linux-gnu-g++ zip unzip
 
 # === Python 3.10.17 ===
 PYTHON_SRC="/usr/src/Python-3.10.17"
@@ -198,7 +197,7 @@ for TYPE in "" "_debug" "_not_strip"; do
 
     if [[ -f "${BIN_DIR}/${BINFILES[0]}" ]]; then
         if $IS_WINDOWS; then
-            ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.zip"
+            ARCHIVE_NAME="${COIN_NAME}-win64-${VERSION}.zip"
             zip -r "${COMPRESS_DIR}/${ARCHIVE_NAME}" "$BIN_SUBDIR" || err "zip failed for $TYPE"
         else
             ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
