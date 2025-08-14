@@ -4,12 +4,10 @@ shopt -s expand_aliases
 alias python=python3.10
 alias python3=python3.10
 
-
-# === Variables ===
+# === Variables & Flags ===
 BAKE_VERSION="0.9"
 REPO_ROOT="$HOME/bitoreum-build/bitoreum"
 CONFIGURE_FLAGS=""
-
 add_flag() {
     if [[ -n "$CONFIGURE_FLAGS" ]]; then
         CONFIGURE_FLAGS+=" $1"
@@ -43,7 +41,7 @@ if [[ -d "$HOME/bitoreum-build/bitoreum" && -n "$(ls -A "$HOME/bitoreum-build/bi
 fi
 
 # === Start Build Process ===
-log "Starting build..."
+	log "Starting build..."
 
 # === Determine First Run ===
 if [[ ! -f "$BAKE_INIT" ]]; then
@@ -105,8 +103,8 @@ fi
 export PATH="/usr/bin:$PATH"
 
 # === Clone repo ===
-mkdir -p ~/bitoreum-build
-cd ~/bitoreum-build
+mkdir -p "$HOME/bitoreum-build"
+cd "$HOME/bitoreum-build"
 
 read -rp "Clone from 'main' or specify a branch name (case-sensitive)? [main/branch-name]: " CHOICE
 if [ "$CHOICE" = "main" ]; then
@@ -115,9 +113,8 @@ else
     git clone https://github.com/Nikovash/bitoreum -b "$CHOICE"
 fi
 
-    log "Branch $CHOICE has been downloaded"
-    
-cd bitoreum/depends
+	log "Branch $CHOICE has been downloaded" 
+cd "${REPO_ROOT}/depends"
 
 # === Select build architecture ===
 echo
@@ -194,7 +191,7 @@ if [[ "$QT_CHOICE" =~ ^[Nn]$ ]]; then
 else
     BUILD_QT=true
 fi
-log "Will build QT: $BUILD_QT"
+	log "Will build QT: $BUILD_QT"
     
 # === Per-target binary names (respect QT choice) ===
 if $IS_WINDOWS; then
@@ -223,7 +220,6 @@ fi
 # === PI4 toggle ===
 PI4_BUILD="${PI4_BUILD:-false}"
 if [[ "$PI4_BUILD" == true ]]; then
-    add_flag "--host=depends/aarch64-linux-gnu"
     log "Attempting Raspberry 4+ build..."
 fi
 
@@ -234,7 +230,6 @@ if [[ "$CHOICE" == "v4.1.0.0" ]]; then
     export FALLBACK_DOWNLOAD_PATH=https://bitoreum.cc/depends/
 fi
 # End Export Fallback ===
-
 
 touch build.log
 make -j$(nproc) HOST=${HOST_TRIPLE} 2>&1 | tee build.log
@@ -271,7 +266,6 @@ touch build.log config.log
 # End
 
 ./configure --prefix="${REPO_ROOT}/depends/${HOST_TRIPLE}" ${CONFIGURE_FLAGS} 2>&1 | tee config.log
-
 make -j"$(nproc)" 2>&1 | tee build.log
 
 # === Organize & Create Outputs ===
@@ -320,15 +314,15 @@ COIN_NAME=bitoreum
 if $PI4_BUILD; then
     ARCH_TYPE="pi4"
 elif $AMPERE_BUILD; then
-    ARCH_TYPE="ampere-aarch64"
+    ARCH_TYPE="Oracle-Ampere"
 elif $IS_WINDOWS; then
-    ARCH_TYPE="win64"
+    ARCH_TYPE="Win64"
 else
 	ARCH_TYPE=$(uname -m)
 fi
 OS="$(. /etc/os-release && echo "${ID}-${VERSION_ID}")"
 if [[ "$OS" == "ubuntu-18.04" ]]; then
-	OS="Generic"
+	OS="Generic-Linux"
 fi
 
 # === Compress and checksum ===
@@ -338,18 +332,16 @@ for TYPE in "" "_debug" "_not_strip"; do
     CHECKSUM_FILE="${BIN_DIR}/checksums-${VERSION}.txt"
 
     cd "$OUTER_DIR" || continue
-
     echo "sha256:" > "$CHECKSUM_FILE"
     find "$BIN_SUBDIR" -type f -exec shasum -a 256 {} \; >> "$CHECKSUM_FILE" || true
     echo "openssl-sha256:" >> "$CHECKSUM_FILE"
     find "$BIN_SUBDIR" -type f -exec sha256sum {} \; >> "$CHECKSUM_FILE"
-
     echo -e "\n📂 Contents of $BIN_DIR:"
     ls -lh "$BIN_DIR"
 
     if [[ -f "${BIN_DIR}/${BINFILES[0]}" ]]; then
         if $IS_WINDOWS; then
-            ARCHIVE_NAME="${COIN_NAME}-${OS}-${ARCH_TYPE}${TYPE}-${VERSION}.zip"
+            ARCHIVE_NAME="${COIN_NAME}-Generic-${ARCH_TYPE}${TYPE}-${VERSION}.zip"
             (cd "$OUTER_DIR" && zip -r "${COMPRESS_DIR}/${ARCHIVE_NAME}" "$BIN_SUBDIR") || err "zip failed for $TYPE"
         else
             ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
