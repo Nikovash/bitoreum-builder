@@ -1,9 +1,14 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+shopt -s expand_aliases
+alias python=python3.10
+alias python3=python3.10
+
 
 # === Variables ===
 BAKE_VERSION="0.9"
 PWD_EXPR="$(pwd)"
+REPO_ROOT="$HOME/bitoreum-build/bitoreum"
 
 # Path to first-run marker (system-wide)
 BAKE_INIT="/opt/bake/bake.log"
@@ -89,8 +94,6 @@ else
     log "Python 3.10.17 already installed."
 fi
 
-alias python=python3.10
-alias python3=python3.10
 export PATH="/usr/bin:$PATH"
 
 # === Clone repo ===
@@ -185,6 +188,21 @@ else
     QT_OPTS=""
 fi
     log "Will build QT: $BUILD_QT"
+    
+# === Per-target binary names (respect QT choice) ===
+if $IS_WINDOWS; then
+    if $BUILD_QT; then
+        BINFILES=(bitoreum-cli.exe bitoreumd.exe bitoreum-tx.exe qt/bitoreum-qt.exe)
+    else
+        BINFILES=(bitoreum-cli.exe bitoreumd.exe bitoreum-tx.exe)
+    fi
+else
+    if $BUILD_QT; then
+        BINFILES=(bitoreum-cli bitoreumd bitoreum-tx qt/bitoreum-qt)
+    else
+        BINFILES=(bitoreum-cli bitoreumd bitoreum-tx)
+    fi
+fi
 
 # === Windows toolchain (and proper strip) ===
 if $IS_WINDOWS; then
@@ -221,12 +239,13 @@ make -j$(nproc) HOST=${HOST_TRIPLE} 2>&1 | tee build.log
   echo "IS_PI4_OR_NEWER=$PI4_BUILD"
   echo "IS_AMPERE=$IS_AMPERE"
   echo "IS_WINDOWS=$IS_WINDOWS"
+  echo "NO_QT=${NO_QT:-0}"
 } > "$PREVIOUS_BAKE_LOG"
 
 log "Recorded Depends Build config to $PREVIOUS_BAKE_LOG"
 
 # === Configure and build ===
-cd ..
+cd "$REPO_ROOT"
 
 # === Get version string ===
 if [[ -f build.properties ]]; then
@@ -244,7 +263,7 @@ touch build.log config.log
     ${CONFIGURE_HOST_OPTS} ${QT_OPTS} 2>&1 | tee config.log
 
 # Report configure command for syntax
-    log "./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" ${CONFIGURE_HOST_OPTS} ${QT_OPTS}"
+    log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${CONFIGURE_HOST_OPTS} ${QT_OPTS}"
 # End
 
 make -j"$(nproc)" 2>&1 | tee build.log
@@ -254,14 +273,9 @@ BUILD_DIR="$HOME/bitoreum-build/build"
 COMPRESS_DIR="$HOME/bitoreum-build/compressed"
 mkdir -p "${BUILD_DIR}/${BIN_SUBDIR}" "${BUILD_DIR}_not_strip/${BIN_SUBDIR}" "${BUILD_DIR}_debug/${BIN_SUBDIR}" "$COMPRESS_DIR"
 
-# Per-target binary names
-BINFILES=(bitoreum-cli bitoreumd bitoreum-tx qt/bitoreum-qt)
-if $IS_WINDOWS; then
-  BINFILES=(bitoreum-cli.exe bitoreumd.exe bitoreum-tx.exe qt/bitoreum-qt.exe)
-fi
-
-# Copy into stripped and not_strip trees
+# Copy into stripped and not_strip trees (with missing binary check)
 for BIN in "${BINFILES[@]}"; do
+  [[ -f "src/${BIN}" ]] || { err "Missing binary: src/${BIN}"; exit 1; }
   cp "src/${BIN}" "${BUILD_DIR}/${BIN_SUBDIR}/"
   cp "src/${BIN}" "${BUILD_DIR}_not_strip/${BIN_SUBDIR}/"
 done
@@ -280,14 +294,16 @@ touch build_debug.log config_debug.log
 ./autogen.sh
 
 # Report configure command for syntax
-log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\"${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug"
+	log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug"
 # End
 
 ./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" \
     ${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug 2>&1 | tee config_debug.log
 make -j"$(nproc)" 2>&1 | tee build_debug.log
 
+# Copy debug builds (with missing binary check)
 for BIN in "${BINFILES[@]}"; do
+  [[ -f "src/${BIN}" ]] || { err "Missing debug binary: src/${BIN}"; exit 1; }
   cp "src/${BIN}" "${BUILD_DIR}_debug/${BIN_SUBDIR}/"
 done
 

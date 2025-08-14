@@ -5,6 +5,8 @@ set -e
 PWD_USAGE="$(pwd)"
 RUN_DIR="$(pwd -P)"
 BITOREUM_DIR="$HOME/bitoreum-build/bitoreum"
+BUILD_DIR="$HOME/bitoreum-build/build"             # where we'll stage binaries
+COMPRESS_DIR="$HOME/bitoreum-build/compress"       # where we'll drop archives/checksums
 BAKE_PROCESS_LOG="$RUN_DIR/bake_creampie.log"
 PREVIOUS_BAKE_LOG="$RUN_DIR/previous_bake.log"
 
@@ -15,23 +17,26 @@ err() { echo -e "\033[1;31m[ERROR] $1\033[0m" | tee -a "$BAKE_PROCESS_LOG" >&2; 
 # Ensure log exists early
 : > "$BAKE_PROCESS_LOG" || { echo "[ERROR] Can't write $BAKE_PROCESS_LOG"; exit 1; }
 
+# Ensure base output dirs exist
+mkdir -p "$BUILD_DIR" "$BUILD_DIR"_debug "$BUILD_DIR"_not_strip "$COMPRESS_DIR"
+
 # === Preconditions ===
 has_files="$(find "$BITOREUM_DIR" -mindepth 1 -type f -print -quit 2>/dev/null)"
 if [[ -d "$BITOREUM_DIR" && -n "$has_files" && -s "$PREVIOUS_BAKE_LOG" ]]; then
-    NUMBER=$(( RANDOM % 24 + 1 ))
-    log "Refire Table $NUMBER"
+  NUMBER=$(( RANDOM % 24 + 1 ))
+  log "Refire Table $NUMBER"
 else
-    log "Something messy happened, use dishy.sh and bake again from scratch"
-    exit 1
+  log "Something messy happened, use dishy.sh and bake again from scratch"
+  exit 1
 fi
 
-# === Load previous bake variables ===
+# === Load previous bake variables (expects key=value lines) ===
 if [[ -s "$PREVIOUS_BAKE_LOG" ]]; then
-    # shellcheck disable=SC1090
-    source "$PREVIOUS_BAKE_LOG"
+  # shellcheck disable=SC1090
+  source "$PREVIOUS_BAKE_LOG"
 else
-    log "Missing or empty $PREVIOUS_BAKE_LOG — cannot load build settings"
-    exit 1
+  log "Missing or empty $PREVIOUS_BAKE_LOG — cannot load build settings"
+  exit 1
 fi
 
 log "Loaded previous bake recipe:"
@@ -39,94 +44,89 @@ log "HOST_TRIPLE=$HOST_TRIPLE"
 log "IS_PI4_OR_NEWER=$IS_PI4_OR_NEWER"
 log "IS_AMPERE=$IS_AMPERE"
 log "IS_WINDOWS=$IS_WINDOWS"
+log "NO_QT=${NO_QT:-0}"
 
 # === Discover safe configure flags (filters tests/bench) ===
 gather_configure_flags() {
-    local raw
-    mapfile -t raw < <(
-        ./configure --help 2>/dev/null \
-        | sed -n 's/^[[:space:]]\{0,2\}\(--[^[:space:]]\+\).*/\1/p' \
-        | grep -E '^(--(enable|disable|with|without)-' \
-        | grep -Evi '(test|tests|bench)' \
-        | sort -u
-    )
-    CFG_FLAGS=()
-    local RE='^(--(enable|disable|with|without)-[A-Za-z0-9._+-]+)(=.*)?$'
-    for f in "${raw[@]}"; do
-        [[ $f =~ $RE ]] && CFG_FLAGS+=("${BASH_REMATCH[1]}")
-    done
-    # de-dup
-    IFS=$'\n' read -r -d '' -a CFG_FLAGS < <(printf "%s\n" "${CFG_FLAGS[@]}" | sort -u && printf '\0')
+  local raw
+  mapfile -t raw < <(
+    ./configure --help 2>/dev/null \
+    | sed -n 's/^[[:space:]]\{0,2\}\(--[^[:space:]]\+\).*/\1/p' \
+    | grep -E '^(--(enable|disable|with|without)-' \
+    | grep -Evi '(test|tests|bench)' \
+    | sort -u
+  )
+  CFG_FLAGS=()
+  local RE='^(--(enable|disable|with|without)-[A-Za-z0-9._+-]+)(=.*)?$'
+  for f in "${raw[@]}"; do
+    [[ $f =~ $RE ]] && CFG_FLAGS+=("${BASH_REMATCH[1]}")
+  done
+  # de-dup
+  IFS=$'\n' read -r -d '' -a CFG_FLAGS < <(printf "%s\n" "${CFG_FLAGS[@]}" | sort -u && printf '\0')
 }
 
 # === Interactive picker with fallbacks ===
 pick_configure_flags() {
-    gather_configure_flags
-    [[ ${#CFG_FLAGS[@]} -eq 0 ]] && { err "No configurable flags found."; return 1; }
+  gather_configure_flags
+  [[ ${#CFG_FLAGS[@]} -eq 0 ]] && { err "No configurable flags found."; return 1; }
 
-    local selections=()
+  local selections=()
 
-    if command -v fzf >/dev/null 2>&1; then
-        # fzf multi-select; preselect by LAST_CONFIGURE_OPTS (optional)
-        local pre=""
-        [[ -n "${LAST_CONFIGURE_OPTS:-}" ]] && pre="$(printf "%s\n" $LAST_CONFIGURE_OPTS)"
-        selections=($(printf "%s\n" "${CFG_FLAGS[@]}" \
-            | fzf --multi --ansi --prompt="Select flags (TAB to toggle, ENTER to accept): " \
-                  --preview-window=down:3:wrap \
-                  --preview='echo {}' \
-                  --query="${pre// / }" 2>/dev/null))
-    elif command -v dialog >/dev/null 2>&1 || command -v whiptail >/dev/null 2>&1; then
-        # dialog/whiptail checklist
-        local ui cmd items=() tmp
-        if command -v dialog >/dev/null 2>&1; then ui=dialog; else ui=whiptail; fi
-        for f in "${CFG_FLAGS[@]}"; do
-            if [[ " ${LAST_CONFIGURE_OPTS:-} " == *" $f "* ]]; then
-                items+=("$f" "$f" "on")
-            else
-                items+=("$f" "$f" "off")
-            fi
-        done
-        tmp=$(mktemp)
-        if [[ $ui == dialog ]]; then
-            cmd=(dialog --separate-output --checklist "Select flags" 20 90 15)
-        else
-            cmd=(whiptail --separate-output --checklist "Select flags" 20 90 15)
-        fi
-        "${cmd[@]}" "${items[@]}" 2> "$tmp" || true
-        mapfile -t selections < "$tmp"
-        rm -f "$tmp"
+  if command -v fzf >/dev/null 2>&1; then
+    local pre=""
+    [[ -n "${LAST_CONFIGURE_OPTS:-}" ]] && pre="$(printf "%s\n" $LAST_CONFIGURE_OPTS)"
+    # shellcheck disable=SC2207
+    selections=($(printf "%s\n" "${CFG_FLAGS[@]}" \
+      | fzf --multi --ansi --prompt="Select flags (TAB to toggle, ENTER to accept): " \
+            --preview-window=down:3:wrap --preview='echo {}' \
+            --query="${pre// / }" 2>/dev/null))
+  elif command -v dialog >/dev/null 2>&1 || command -v whiptail >/dev/null 2>&1; then
+    local ui cmd items=() tmp
+    if command -v dialog >/dev/null 2>&1; then ui=dialog; else ui=whiptail; fi
+    for f in "${CFG_FLAGS[@]}"; do
+      if [[ " ${LAST_CONFIGURE_OPTS:-} " == *" $f "* ]]; then
+        items+=("$f" "$f" "on")
+      else
+        items+=("$f" "$f" "off")
+      fi
+    done
+    tmp=$(mktemp)
+    if [[ $ui == dialog ]]; then
+      cmd=(dialog --separate-output --checklist "Select flags" 20 90 15)
     else
-        # simple numbered fallback (space-separated indices)
-        echo
-        log "Select configure options to APPLY (space-separated indices, Enter to skip):"
-        local i
-        for i in "${!CFG_FLAGS[@]}"; do
-            printf "  %2d) %s\n" "$((i+1))" "${CFG_FLAGS[$i]}"
-        done
-        echo
-        read -rp "Choice(s): " _nums
-        for n in $_nums; do
-            [[ $n =~ ^[0-9]+$ ]] && (( n>=1 && n<=${#CFG_FLAGS[@]} )) && selections+=("${CFG_FLAGS[$((n-1))]}")
-        done
+      cmd=(whiptail --separate-output --checklist "Select flags" 20 90 15)
     fi
-
-    # Build CONFIGURE_OPTS from selections + optional extra flags
-    CONFIGURE_OPTS=""
-    if ((${#selections[@]})); then
-        CONFIGURE_OPTS="${selections[*]}"
-    fi
-
+    "${cmd[@]}" "${items[@]}" 2> "$tmp" || true
+    mapfile -t selections < "$tmp"
+    rm -f "$tmp"
+  else
     echo
-    read -rp "Add extra flags (optional, e.g. --with-gui=qt5 --disable-zmq): " extra
-    [[ -n $extra ]] && CONFIGURE_OPTS="$CONFIGURE_OPTS $extra"
-    CONFIGURE_OPTS="${CONFIGURE_OPTS# }"
-    CONFIGURE_OPTS="${CONFIGURE_OPTS%% }"
+    log "Select configure options to APPLY (space-separated indices, Enter to skip):"
+    local i _nums
+    for i in "${!CFG_FLAGS[@]}"; do
+      printf "  %2d) %s\n" "$((i+1))" "${CFG_FLAGS[$i]}"
+    done
+    echo
+    read -rp "Choice(s): " _nums
+    for n in $_nums; do
+      [[ $n =~ ^[0-9]+$ ]] && (( n>=1 && n<=${#CFG_FLAGS[@]} )) && selections+=("${CFG_FLAGS[$((n-1))]}")
+    done
+  fi
 
-    # Always force these off
-    local FORCE_DISABLES="--disable-tests --disable-bench --disable-gui-tests"
-    CONFIGURE_OPTS="${CONFIGURE_OPTS:+$CONFIGURE_OPTS }$FORCE_DISABLES"
+  CONFIGURE_OPTS=""
+  ((${#selections[@]})) && CONFIGURE_OPTS="${selections[*]}"
 
-    log "Using configure flags: ${CONFIGURE_OPTS:-<none>}"
+  echo
+  read -rp "Add extra flags (optional, e.g. --with-gui=qt5 --disable-zmq): " extra
+  [[ -n $extra ]] && CONFIGURE_OPTS="$CONFIGURE_OPTS $extra"
+  CONFIGURE_OPTS="${CONFIGURE_OPTS# }"
+  CONFIGURE_OPTS="${CONFIGURE_OPTS%% }"
+
+  # Always force these off (broken)
+  local FORCE_DISABLES="--disable-tests --disable-bench --disable-gui-tests"
+  CONFIGURE_OPTS="${CONFIGURE_OPTS:+$CONFIGURE_OPTS }$FORCE_DISABLES"
+
+  log "Using configure flags: ${CONFIGURE_OPTS:-<none>}"
 }
 
 # === Ask user action ===
@@ -143,22 +143,28 @@ USER_CHOICE=${USER_CHOICE:-1}
 case "$USER_CHOICE" in
   1)
     log "Keeping Depends, modifying configurable options..."
+
+
     cd "$BITOREUM_DIR" || { err "Failed to cd into $BITOREUM_DIR"; exit 1; }
+
     make clean || true
     make distclean || true
     ./autogen.sh
     pick_configure_flags || { err "Flag selection failed"; exit 1; }
-	: > config.log
-	: > build.log
 
+    : > config.log
+    : > build.log
 
     if [[ -n "${HOST_TRIPLE:-}" ]]; then
-      ./configure --host="$HOST_TRIPLE" $CONFIGURE_OPTS
+      ./configure \
+        --prefix="$(pwd)/depends/${HOST_TRIPLE}" \
+        --host="${HOST_TRIPLE}" \
+        $CONFIGURE_OPTS 2>&1 | tee config.log
     else
-      ./configure $CONFIGURE_OPTS
+      ./configure $CONFIGURE_OPTS 2>&1 | tee config.log
     fi
-    
-    
+
+    make -j"$(nproc)" 2>&1 | tee build.log
     ;;
 
   2)
@@ -179,3 +185,115 @@ case "$USER_CHOICE" in
     exit 1
     ;;
 esac
+
+# === Prepare version & staging dirs ===
+if [[ -f build.properties ]]; then
+  VERSION="$(grep -E '^release-version=' build.properties | cut -d'=' -f2-)"
+else
+  VERSION="$(date +%Y%m%d-%H%M%S)"
+  echo "release-version=$VERSION" > build.properties
+  log "Warning, build.properties not found — using fallback version: $VERSION"
+fi
+
+BIN_SUBDIR="bitoreum-v${VERSION}"
+
+# Ensure staging trees exist for all three variants
+mkdir -p "${BUILD_DIR}/${BIN_SUBDIR}" \
+         "${BUILD_DIR}_not_strip/${BIN_SUBDIR}" \
+         "${BUILD_DIR}_debug/${BIN_SUBDIR}"
+
+# === Per-target binary names ===
+BINFILES=(bitoreum-cli bitoreumd bitoreum-tx qt/bitoreum-qt)
+if [[ "$IS_WINDOWS" == "true" ]]; then
+  BINFILES=(bitoreum-cli.exe bitoreumd.exe bitoreum-tx.exe qt/bitoreum-qt.exe)
+fi
+
+# === Copy built binaries into staging ===
+for BIN in "${BINFILES[@]}"; do
+  if [[ -f "src/${BIN}" ]]; then
+    cp "src/${BIN}" "${BUILD_DIR}/${BIN_SUBDIR}/"
+    cp "src/${BIN}" "${BUILD_DIR}_not_strip/${BIN_SUBDIR}/"
+    cp "src/${BIN}" "${BUILD_DIR}_debug/${BIN_SUBDIR}/"
+  else
+    err "Missing built binary: src/${BIN}"
+  fi
+done
+
+# === Strip 'release' tree (not the _not_strip or _debug) ===
+if [[ "$IS_WINDOWS" == "true" ]]; then
+  STRIP_TOOL="x86_64-w64-mingw32-strip"
+elif [[ -n "${HOST_TRIPLE:-}" ]]; then
+  # Try triplet strip if present; fall back to 'strip'
+  STRIP_TOOL="${HOST_TRIPLE}-strip"
+  command -v "$STRIP_TOOL" >/dev/null 2>&1 || STRIP_TOOL="strip"
+else
+  STRIP_TOOL="strip"
+fi
+
+if compgen -G "${BUILD_DIR}/${BIN_SUBDIR}/*" >/dev/null; then
+  "$STRIP_TOOL" "${BUILD_DIR}/${BIN_SUBDIR}/"* || err "strip failed"
+fi
+
+# === Archive naming helpers ===
+COIN_NAME="bitoreum"
+if [[ "$IS_PI4_OR_NEWER" == "true" ]]; then
+  ARCH_TYPE="pi4"
+elif [[ "$IS_AMPERE" == "true" ]]; then
+  ARCH_TYPE="ampere-aarch64"
+elif [[ "$IS_WINDOWS" == "true" ]]; then
+  ARCH_TYPE="win64"
+else
+  ARCH_TYPE="$(uname -m)"
+fi
+OS="$(. /etc/os-release && echo "${ID}-${VERSION_ID}")"
+
+# === Compress and checksum ===
+for TYPE in "" "_debug" "_not_strip"; do
+  OUTER_DIR="${BUILD_DIR}${TYPE}"
+  BIN_DIR="${OUTER_DIR}/${BIN_SUBDIR}"
+  CHECKSUM_FILE="${BIN_DIR}/checksums-${VERSION}.txt"
+
+  [[ -d "$BIN_DIR" ]] || { err "Missing bin dir $BIN_DIR"; continue; }
+  ( cd "$OUTER_DIR" || exit 0
+
+    echo "sha256:" > "$CHECKSUM_FILE"
+    find "$BIN_SUBDIR" -type f -exec shasum -a 256 {} \; >> "$CHECKSUM_FILE" || true
+    echo "openssl-sha256:" >> "$CHECKSUM_FILE"
+    find "$BIN_SUBDIR" -type f -exec sha256sum {} \; >> "$CHECKSUM_FILE"
+
+    echo -e "\n📂 Contents of $BIN_DIR:"
+    ls -lh "$BIN_DIR"
+
+    if [[ -f "${BIN_DIR}/$(basename "${BINFILES[0]}")" ]]; then
+      if [[ "$IS_WINDOWS" == "true" ]]; then
+        ARCHIVE_NAME="${COIN_NAME}-${ARCH_TYPE}${TYPE}-${VERSION}.zip"
+        zip -r "${COMPRESS_DIR}/${ARCHIVE_NAME}" "$BIN_SUBDIR" >/dev/null
+      else
+        ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
+        tar -cf - "$BIN_SUBDIR" | gzip -9 > "${COMPRESS_DIR}/${ARCHIVE_NAME}"
+      fi
+      log "Compressed: $ARCHIVE_NAME"
+    else
+      err "Missing binaries in $BIN_DIR — skipping compression."
+    fi
+  )
+done
+
+# === Final global checksum (all archives) ===
+cd "$COMPRESS_DIR"
+if ls *.tar.gz >/dev/null 2>&1 || ls *.zip >/dev/null 2>&1; then
+  GLOBAL_SUM="checksums-${VERSION}.txt"
+  : > "$GLOBAL_SUM"
+  for FILE in *.tar.gz *.zip 2>/dev/null; do
+    [[ -f "$FILE" ]] || continue
+    echo "sha256: $(shasum -a 256 "$FILE")" >> "$GLOBAL_SUM" || true
+    echo "openssl-sha256: $(sha256sum "$FILE")" >> "$GLOBAL_SUM"
+  done
+  log "Compression complete. Files saved in $COMPRESS_DIR"
+else
+  err "No archives were created."
+fi
+
+echo
+echo -e "\033[1;32mBuild process complete.\033[0m"
+echo -e "Artifacts are in: \033[1;36m$COMPRESS_DIR\033[0m"
