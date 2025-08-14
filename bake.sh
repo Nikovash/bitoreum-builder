@@ -349,7 +349,7 @@ for TYPE in "" "_debug" "_not_strip"; do
 
     if [[ -f "${BIN_DIR}/${BINFILES[0]}" ]]; then
         if $IS_WINDOWS; then
-            ARCHIVE_NAME="${COIN_NAME}-${ARCH_TYPE}${TYPE}-${VERSION}.zip"
+            ARCHIVE_NAME="${COIN_NAME}-${OS}-${ARCH_TYPE}${TYPE}-${VERSION}.zip"
             (cd "$OUTER_DIR" && zip -r "${COMPRESS_DIR}/${ARCHIVE_NAME}" "$BIN_SUBDIR") || err "zip failed for $TYPE"
         else
             ARCHIVE_NAME="${COIN_NAME}-${OS}_${ARCH_TYPE}${TYPE}-${VERSION}.tar.gz"
