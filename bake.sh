@@ -261,13 +261,12 @@ touch build.log config.log
 ./autogen.sh
 
 # Report configure command for syntax
-	log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" \
-	${CONFIGURE_HOST_OPTS} ${QT_OPTS}"
+	log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${CONFIGURE_HOST_OPTS} ${QT_OPTS}"
 # End
 
 
-./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" \
-    ${CONFIGURE_HOST_OPTS} ${QT_OPTS} 2>&1 | tee config.log
+
+./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" ${CONFIGURE_HOST_OPTS} ${QT_OPTS} 2>&1 | tee config.log
 
 make -j"$(nproc)" 2>&1 | tee build.log
 
@@ -297,13 +296,10 @@ touch build_debug.log config_debug.log
 ./autogen.sh
 
 # Report configure command for syntax
-	log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" \
-	${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug"
+	log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug"
 # End
 
-
-./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" \
-    ${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug 2>&1 | tee config_debug.log
+./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" ${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug 2>&1 | tee config_debug.log
 make -j"$(nproc)" 2>&1 | tee build_debug.log
 
 # Copy debug builds (with missing binary check)
