@@ -9,7 +9,7 @@ This guide covers advanced customization, troubleshooting, and optimization tech
 When prompted to enter a branch name, you can specify:
 
 - A **feature branch** for testing forks
-- A **tag** (e.g., `v4.0.0.2`) if tags are enabled
+- A **tag** (e.g., `v4.0.1.1`) if tags are enabled
 - Any valid remote branch name
 
 ---
@@ -76,7 +76,7 @@ If you use `screen`, make sure to:
 
 ```bash
 screen -S build
-./build-bitoreum.sh
+./bake.sh
 ```
 
 To detach and reattach:
@@ -105,7 +105,7 @@ Check the log files:
 Make sure the script is executable:
 
 ```bash
-chmod +x build-bitoreum.sh
+chmod +x bake.sh
 ```
 
 And that you're running in a directory you own (like `~/bitoreum-build`).

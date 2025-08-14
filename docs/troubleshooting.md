@@ -10,9 +10,9 @@ This guide helps you diagnose and fix issues when running the `build-bitoreum.sh
 
 - Make sure the script is executable:
   ```bash
-  chmod +x build-bitoreum.sh
+  chmod +x bake.sh
   ```
-- Ensure you're using `./build-bitoreum.sh` to run it (not just `build-bitoreum.sh`).
+- Ensure you're using `./bake.sh` to run it (not just `bake.sh`).
 
 ---
 

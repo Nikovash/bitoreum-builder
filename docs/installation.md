@@ -46,7 +46,7 @@ Once installed, aliases are created:
   ```bash
   git clone https://github.com/Nikovash/bitoreum-builder.git
   cd bitoreum-builder
-  chmod +x build-bitoreum.sh
+  chmod +x bake.sh
   ```
 
 ## 🖥️ (Optional) Use screen
@@ -58,7 +58,7 @@ We recommend launching a screen session before building:
   ```
 Launch the script (may or may not need to call with `sudo`):
   ```bash
-  ./build-bitoreum.sh
+  ./bake.sh
   ```
 Detach the session with:
 

@@ -7,6 +7,8 @@
 A fully automated build script for compiling [Crystal Bitoreum](https://github.com/Nikovash/bitoreum) or other forks.  
 Supports multiple target architectures and generates stripped, not-stripped, and debug builds, each with full checksums and compressed archives.
 
+**Version:** 0.9
+
 ---
 
 ## 🚀 Features
@@ -51,7 +53,7 @@ sudo apt install git
 ```bash
 git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
-chmod +x build-bitoreum.sh
+chmod +x bake.sh
 ```
 Launch a screen (Optional but reccomended):
 ```bash
@@ -59,7 +61,7 @@ screen -S build
 ```
 Once insides the screen we can now run the app:
 ```bash
-./build-bitoreum.sh
+./bake.sh
 ```
 You can disconnect the screen at any time by pressing:
 ```bash

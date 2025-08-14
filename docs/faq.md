@@ -2,9 +2,17 @@
 
 ---
 
+### Q: Why the name change from `build-bitoreum.sh` to `bake.sh`?
+
+A: There are a couple of reasons, 
+
+- **B**itoreum m**ake** = `bake.sh`
+- Fewer characters to type, leading to hopefully less errors
+- Future plan to add other coins making this more a semi-universal builder
+
 ### 🔧 Q: What platforms can I build for?
 
-A: The script supports Debian fork Linux Distrobutins wit hthe following architecture types:
+A: The script supports Debian fork Linux Distributions with the following architecture types:
 
 - Linux 64-bit (`x86_64-pc-linux-gnu`)
 - Linux 32-bit (`i686-pc-linux-gnu`)
@@ -35,11 +43,7 @@ Each `.tar.gz` archive includes binaries and a checksum file.
 
 ### 🔁 Q: Can I run the script multiple times?
 
-A: Maybe... I have not yet tested it! Each run **should**:
-
-- Cleans up previous builds
-- Reconfigures based on your target
-- Creates new output folders and archives
+A: No, you have delete the `bitoreum-build` folder this is a bug that needs to be addressed for later use
 
 ---
 
@@ -74,8 +78,7 @@ A:
 
 ### 🔑 Q: Can I build with my own fork?
 
-A: Absolutely. When prompted, enter your custom branch name.  
-Just make sure it’s public or you have Git access.
+A: Absolutely. You just need to modify the bake.sh file to add in your own GitHub repository URL
 
 ---
 
@@ -91,13 +94,10 @@ sha256sum -c checksums-<version>.txt
 
 ### 🧼 Q: How do I clean up old builds?
 
-From the project directory:
-
 ```bash
-make clean && make distclean
 rm -rf ~/bitoreum-build/*
 ```
-OR (some older distros are wierd about hte use of ~):
+OR (some older distros are weird about the use of ~):
 
 ```bash
 rm -rf $HOME/bitoreum-build/*

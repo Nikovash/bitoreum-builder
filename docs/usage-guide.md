@@ -1,6 +1,6 @@
 # 🚀 Usage Guide
 
-This document walks you through using the `build-bitoreum.sh` script to compile Bitoreum or related forks for multiple platforms.
+This document walks you through using the `bake.sh` script to compile Bitoreum or related forks for multiple platforms.
 
 ---
 
@@ -11,7 +11,7 @@ Before running the script:
 ```bash
 git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
-chmod +x build-bitoreum.sh
+chmod +x bake.sh
 ```
 
 (Optional but recommended)
@@ -27,7 +27,7 @@ screen -S build
 Launch the build process:
 
 ```bash
-./build-bitoreum.sh
+./bake.sh
 ```
 
 The script will prompt you with several options:
