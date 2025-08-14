@@ -94,15 +94,10 @@ sha256sum -c checksums-<version>.txt
 
 ### 🧼 Q: How do I clean up old builds?
 
+Within the `bitoreum-builder` folder is a new helper, every good kitchen needs a dishy! This action is destructive, so use with caution!!!
 ```bash
-rm -rf ~/bitoreum-build/*
+$HOME/bitoreum-builder/./dishy.sh
 ```
-OR (some older distros are weird about the use of ~):
-
-```bash
-rm -rf $HOME/bitoreum-build/*
-```
-
 ---
 
 Still have questions?  

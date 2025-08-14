@@ -321,9 +321,12 @@ elif $AMPERE_BUILD; then
 elif $IS_WINDOWS; then
     ARCH_TYPE="win64"
 else
-    ARCH_TYPE=$(uname -m)
+	ARCH_TYPE=$(uname -m)
 fi
 OS="$(. /etc/os-release && echo "${ID}-${VERSION_ID}")"
+if [[ "$OS" == "ubuntu-18.04" ]]; then
+	OS="Generic"
+fi
 
 # === Compress and checksum ===
 for TYPE in "" "_debug" "_not_strip"; do
@@ -359,11 +362,11 @@ done
 cd "$COMPRESS_DIR"
 if ls *.tar.gz >/dev/null 2>&1 || ls *.zip >/dev/null 2>&1; then
     GLOBAL_SUM="checksums-${VERSION}.txt"
-    for FILE in *.tar.gz *.zip 2>/dev/null; do
-        [[ -f "$FILE" ]] || continue
-        echo "sha256: $(shasum -a 256 "$FILE")" >> "$GLOBAL_SUM" || true
-        echo "openssl-sha256: $(sha256sum "$FILE")" >> "$GLOBAL_SUM"
-    done
+    for FILE in *.tar.gz *.zip; do
+    [[ -e "$FILE" ]] || continue
+    echo "sha256: $(shasum -a 256 "$FILE")" >> "$GLOBAL_SUM" || true
+    echo "openssl-sha256: $(sha256sum "$FILE")" >> "$GLOBAL_SUM"
+done
     log "Compression complete. Files saved in $COMPRESS_DIR"
 else
     err "No archives were created."
