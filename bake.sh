@@ -6,9 +6,10 @@ BAKE_INIT="/opt/bake/bake.log"
 
 # Folder where the script was launched (don’t use $0; we want the run dir)
 RUN_DIR="$(pwd -P)"
-# Local session log (same folder where you ran bake.sh)
+# Local session log
 BAKE_CAKE_LOG="$RUN_DIR/bake_cake.log"
-# Previous successful depends build config (same folder where you ran bake.sh)
+: > "$BAKE_CAKE_LOG"
+# Previous successful depends build config
 PREVIOUS_BAKE_LOG="$RUN_DIR/previous_bake.log"
 
 log() {
@@ -221,14 +222,12 @@ BIN_SUBDIR="bitoreum-v${VERSION}"
 touch build.log config.log
 ./autogen.sh
 ./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" \
-    ${QT_OPTS} ${CONFIGURE_HOST_OPTS} 2>&1 | tee config.log
-    
-# Log with shell quoting
+    ${CONFIGURE_HOST_OPTS} ${QT_OPTS} 2>&1 | tee config.log
 
-log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${QT_OPTS} ${CONFIGURE_HOST_OPTS}"
+# Report configure command for syntax
+log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\"${CONFIGURE_HOST_OPTS} ${QT_OPTS}"
+# End
 
-# End of Temp Logging
-    
 make -j"$(nproc)" 2>&1 | tee build.log
 
 # === Organize & Create Outputs ===
@@ -261,8 +260,12 @@ make clean && make distclean
 touch build_debug.log config_debug.log
 ./autogen.sh
 
+# Report configure command for syntax
+log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\"${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug"
+# End
+
 ./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" \
-    --enable-debug ${QT_OPTS} ${CONFIGURE_HOST_OPTS} 2>&1 | tee config_debug.log
+    ${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug 2>&1 | tee config_debug.log
 make -j"$(nproc)" 2>&1 | tee build_debug.log
 
 for BIN in "${BINFILES[@]}"; do
