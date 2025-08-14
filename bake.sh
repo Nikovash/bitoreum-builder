@@ -1,19 +1,27 @@
 #!/bin/bash
 set -e
 
-CONFIG_FILE="/opt/bake/run.conf"
+# Path to first-run marker (system-wide)
+BAKE_INIT="/opt/bake/bake.log"
+
+# Folder where the script was launched (don’t use $0; we want the run dir)
+RUN_DIR="$(pwd -P)"
+# Local session log (same folder where you ran bake.sh)
+BAKE_CAKE_LOG="$RUN_DIR/bake_cake.log"
+# Previous successful depends build config (same folder where you ran bake.sh)
+PREVIOUS_BAKE_LOG="$RUN_DIR/previous_bake.log"
 
 log() {
-    echo -e "\033[1;32m[INFO] $1\033[0m"
+    echo -e "\033[1;32m[INFO] $1\033[0m" | tee -a "$BAKE_CAKE_LOG"
 }
 err() {
-    echo -e "\033[1;31m[ERROR] $1\033[0m" >&2
+    echo -e "\033[1;31m[ERROR] $1\033[0m" | tee -a "$BAKE_CAKE_LOG" >&2
 }
 
 log "Starting build..."
 
 # === Determine First Run ===
-if [[ ! -f "$CONFIG_FILE" ]]; then
+if [[ ! -f "$BAKE_INIT" ]]; then
     FIRST_RUN=true
 else
     FIRST_RUN=false
@@ -21,16 +29,16 @@ fi
 
 log "First run: $FIRST_RUN"
 
-# Example usage
+# === Determine First Run ===
 if [[ "$FIRST_RUN" == true ]]; then
     log "Performing first run setup..."
     sudo mkdir -p /opt/bake
-    sudo tee "$CONFIG_FILE" > /dev/null <<EOF
+    sudo tee "$BAKE_INIT" > /dev/null <<EOF
 # Bake configuration
 BAKE_VERSION=1.0
 INSTALL_PATH=/opt/bake
 EOF
-    log "Configuration file created at $CONFIG_FILE"
+    log "Configuration file created at $BAKE_INIT"
 # === System setup (first run) ===
     log "Updating and upgrading system packages..."
     sudo apt update
@@ -187,6 +195,16 @@ export FALLBACK_DOWNLOAD_PATH=https://bitoreum.cc/depends/
 touch build.log
 make -j$(nproc) HOST=${HOST_TRIPLE} 2>&1 | tee build.log
 
+# Only reached if 'make' succeeded (thanks to set -e and pipefail)
+{
+  echo "HOST_TRIPLE=$HOST_TRIPLE"
+  echo "IS_PI4_OR_NEWER=$IS_PI4_OR_NEWER"
+  echo "IS_AMPERE=$IS_AMPERE"
+  echo "IS_WINDOWS=$IS_WINDOWS"
+} > "$PREVIOUS_BAKE_LOG"
+
+log "Recorded depends build config to $PREVIOUS_BAKE_LOG"
+
 # === Configure and build ===
 cd ..
 
@@ -207,7 +225,7 @@ touch build.log config.log
     
 # Log with shell quoting
 
-echo "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${QT_OPTS} ${CONFIGURE_HOST_OPTS}" >> debug.log
+log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${QT_OPTS} ${CONFIGURE_HOST_OPTS}"
 
 # End of Temp Logging
     
