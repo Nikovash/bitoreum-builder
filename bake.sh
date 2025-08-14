@@ -144,7 +144,7 @@ case "$ARCH_CHOICE" in
 esac
 
 # === Ask if QT should be built ===
-read -rp "Build with QT GUI? [Y/n]: " QT_CHOICE
+read -rp "Build with QT (GUI Core Wallet)? [Y/n]: " QT_CHOICE
 QT_CHOICE=${QT_CHOICE:-Y}
 
 if [[ "$QT_CHOICE" =~ ^[Nn]$ ]]; then
@@ -179,6 +179,11 @@ else
 fi
 
 # === Build depends ===
+
+# === Temp Export ===
+export FALLBACK_DOWNLOAD_PATH=https://bitoreum.cc/depends/
+# End Export Fallback ===
+
 touch build.log
 make -j$(nproc) HOST=${HOST_TRIPLE} 2>&1 | tee build.log
 
@@ -202,7 +207,7 @@ touch build.log config.log
     
 # Log with shell quoting
 
-echo "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${QT_OPTS} ${CONFIGURE_HOST_OPTS}" >> "$LOGFILE"
+echo "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${QT_OPTS} ${CONFIGURE_HOST_OPTS}" >> debug.log
 
 # End of Temp Logging
     
