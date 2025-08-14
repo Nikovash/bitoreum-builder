@@ -7,6 +7,8 @@
 A fully automated build script for compiling [Crystal Bitoreum](https://github.com/Nikovash/bitoreum) or other forks.  
 Supports multiple target architectures and generates stripped, not-stripped, and debug builds, each with full checksums and compressed archives.
 
+**Version:** 0.9
+
 ---
 
 ## 🚀 Features
@@ -16,23 +18,25 @@ Supports multiple target architectures and generates stripped, not-stripped, and
 - ✅ Python 3.10.17 setup (if missing)
 - ✅ Clone from `main` or custom branch
 - ✅ Platform selection:
-  - 🖥️ Linux 64-bit
-  - 🖥️ Linux 32-bit
-  - 📱 Linux ARM 32-bit
-  - 📱 Linux ARM 64-bit
-  - Raspberry Pi 4 or bettter
+  - Linux x86_64-bit
+  - Linux x86_32-bit
+  - Linux ARM_32-bit
+  - Linux ARM_64-bit
+  - Raspberry Pi 4+
   - Ampere
+  - Windows x86-64 Cross Compile
   - ❌ Cancel and exit
 - ✅ Fully separate debug build
 - ✅ Stripped and unstripped binaries
 - ✅ Per-build and archive-level SHA + OpenSSL-style checksums
-- ✅ `.tar.gz` compression (max level)
+- ✅ `*.tar.gz` compression For Linux (max level)
+- ✅ `*.zip` compression For Windows (max level)
 
 ---
 
 ## 📦 Requirements
 
-- Linux (Ubuntu 20.04+ recommended)
+- Linux (Ubuntu 18.04+ recommended)
 - `sudo` privileges
 - Internet connection
 - Optional: `screen` (for remote session safety)
@@ -51,15 +55,19 @@ sudo apt install git
 ```bash
 git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
-chmod +x build-bitoreum.sh
+chmod +x bake.sh
 ```
-Launch a screen (Optional but reccomended):
+Launch a screen (Optional but recommended):
 ```bash
 screen -S build
 ```
 Once insides the screen we can now run the app:
 ```bash
-./build-bitoreum.sh
+./bake.sh
+```
+You can tail the less critical and noisy logging of this script by tailing the file created called `bake_bread.log`
+```bash
+tail -f bake_bread.log
 ```
 You can disconnect the screen at any time by pressing:
 ```bash
