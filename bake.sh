@@ -230,8 +230,11 @@ fi
 # === Build depends ===
 
 # === Temp Export ===
-export FALLBACK_DOWNLOAD_PATH=https://bitoreum.cc/depends/
+if [[ "$CHOICE" == "v4.1.0.0" ]]; then
+    export FALLBACK_DOWNLOAD_PATH=https://bitoreum.cc/depends/
+fi
 # End Export Fallback ===
+
 
 touch build.log
 make -j$(nproc) HOST=${HOST_TRIPLE} 2>&1 | tee build.log
