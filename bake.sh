@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+BAKE_VERSION="0.9"
+
 # Path to first-run marker (system-wide)
 BAKE_INIT="/opt/bake/bake.log"
 
@@ -36,8 +38,8 @@ if [[ "$FIRST_RUN" == true ]]; then
     sudo mkdir -p /opt/bake
     sudo tee "$BAKE_INIT" > /dev/null <<EOF
 # Bake configuration
-BAKE_VERSION=1.0
-INSTALL_PATH=/opt/bake
+BAKE_VERSION=0.9
+SCRIPT_INSTALL=${RUN_DIR}
 EOF
     log "Configuration file created at $BAKE_INIT"
 # === System setup (first run) ===
@@ -48,7 +50,12 @@ EOF
         python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
         libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip
 else
-
+# === Update config file on subsequent runs ===
+    sudo tee "$BAKE_INIT" > /dev/null <<EOF
+# Bake configuration
+BAKE_VERSION=$BAKE_VERSION
+SCRIPT_INSTALL=$RUN_DIR
+EOF
 # === System setup (subsequent runs) ===
     log "Updating and installing required packages..."
     sudo apt update
