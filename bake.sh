@@ -4,6 +4,7 @@ shopt -s expand_aliases
 alias python=python3.10
 alias python3=python3.10
 
+
 # === Variables & Flags ===
 BAKE_VERSION="0.9"
 REPO_ROOT="$HOME/bitoreum-build/bitoreum"
@@ -191,6 +192,7 @@ if [[ "$QT_CHOICE" =~ ^[Nn]$ ]]; then
 else
     BUILD_QT=true
 fi
+
 	log "Will build QT: $BUILD_QT"
     
 # === Per-target binary names (respect QT choice) ===
