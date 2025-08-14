@@ -7,8 +7,15 @@ alias python3=python3.10
 
 # === Variables ===
 BAKE_VERSION="0.9"
-PWD_EXPR="$(pwd)"
 REPO_ROOT="$HOME/bitoreum-build/bitoreum"
+
+add_flag() {
+    if [[ -n "$CONFIGURE_FLAGS" ]]; then
+        CONFIGURE_FLAGS+=" $1"
+    else
+        CONFIGURE_FLAGS="$1"
+    fi
+}
 
 # Path to first-run marker (system-wide)
 BAKE_INIT="/opt/bake/bake.log"
@@ -180,14 +187,13 @@ read -rp "Build with QT (GUI Core Wallet)? [Y/n]: " QT_CHOICE
 QT_CHOICE=${QT_CHOICE:-Y}
 
 if [[ "$QT_CHOICE" =~ ^[Nn]$ ]]; then
-#    NO_QT=1
+    NO_QT=1
     BUILD_QT=false
-    QT_OPTS="--with-gui=no"
+    add_flag "--with-gui=no"
 else
     BUILD_QT=true
-    QT_OPTS=""
 fi
-    log "Will build QT: $BUILD_QT"
+log "Will build QT: $BUILD_QT"
     
 # === Per-target binary names (respect QT choice) ===
 if $IS_WINDOWS; then
@@ -215,13 +221,9 @@ fi
 
 # === PI4 toggle ===
 PI4_BUILD="${PI4_BUILD:-false}"
-
 if [[ "$PI4_BUILD" == true ]]; then
-  PWD_EXPR="`pwd`"
-  CONFIGURE_HOST_OPTS="--host=depends/aarch64-linux-gnu"
-  log "Attempting Raspberry 4+ build..."
-else
-  CONFIGURE_HOST_OPTS=""
+    add_flag "--host=depends/aarch64-linux-gnu"
+    log "Attempting Raspberry 4+ build..."
 fi
 
 # === Build depends ===
@@ -261,12 +263,10 @@ touch build.log config.log
 ./autogen.sh
 
 # Report configure command for syntax
-	log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${CONFIGURE_HOST_OPTS} ${QT_OPTS}"
+	log "./configure --prefix=\"${REPO_ROOT}/depends/${HOST_TRIPLE}\" ${CONFIGURE_FLAGS}"
 # End
 
-
-
-./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" ${CONFIGURE_HOST_OPTS} ${QT_OPTS} 2>&1 | tee config.log
+./configure --prefix="${REPO_ROOT}/depends/${HOST_TRIPLE}" ${CONFIGURE_FLAGS} 2>&1 | tee config.log
 
 make -j"$(nproc)" 2>&1 | tee build.log
 
@@ -295,11 +295,14 @@ make clean && make distclean
 touch build_debug.log config_debug.log
 ./autogen.sh
 
+# Add debug flag without breaking spacing
+add_flag "--enable-debug"
+
 # Report configure command for syntax
-	log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug"
+	log "./configure --prefix=\"${REPO_ROOT}/depends/${HOST_TRIPLE}\" ${CONFIGURE_FLAGS}"
 # End
 
-./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" ${CONFIGURE_HOST_OPTS} ${QT_OPTS} --enable-debug 2>&1 | tee config_debug.log
+./configure --prefix="${REPO_ROOT}/depends/${HOST_TRIPLE}" ${CONFIGURE_FLAGS} 2>&1 | tee config_debug.log
 make -j"$(nproc)" 2>&1 | tee build_debug.log
 
 # Copy debug builds (with missing binary check)
