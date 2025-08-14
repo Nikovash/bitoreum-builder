@@ -180,7 +180,7 @@ read -rp "Build with QT (GUI Core Wallet)? [Y/n]: " QT_CHOICE
 QT_CHOICE=${QT_CHOICE:-Y}
 
 if [[ "$QT_CHOICE" =~ ^[Nn]$ ]]; then
-    NO_QT=1
+#    NO_QT=1
     BUILD_QT=false
     QT_OPTS="--with-gui=no"
 else
@@ -217,7 +217,7 @@ fi
 PI4_BUILD="${PI4_BUILD:-false}"
 
 if [[ "$PI4_BUILD" == true ]]; then
-  PWD_EXPR='$(pwd)'
+  PWD_EXPR="`pwd`"
   CONFIGURE_HOST_OPTS="--host=depends/aarch64-linux-gnu"
   log "Attempting Raspberry 4+ build..."
 else
@@ -259,12 +259,15 @@ BIN_SUBDIR="bitoreum-v${VERSION}"
 
 touch build.log config.log
 ./autogen.sh
-./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" \
-    ${CONFIGURE_HOST_OPTS} ${QT_OPTS} 2>&1 | tee config.log
 
 # Report configure command for syntax
-    log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" ${CONFIGURE_HOST_OPTS} ${QT_OPTS}"
+	log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\" \
+	${CONFIGURE_HOST_OPTS} ${QT_OPTS} 2>&1 | tee config.log"
 # End
+
+
+./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" \
+    ${CONFIGURE_HOST_OPTS} ${QT_OPTS} 2>&1 | tee config.log
 
 make -j"$(nproc)" 2>&1 | tee build.log
 

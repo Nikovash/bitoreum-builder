@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 # === Variables ===
 RUN_DIR="$(pwd -P)"
-BITOREUM_DIR="$HOME/bitoreum-build/bitoreum"
+BITOREUM_DIR="$HOME/bitoreum-build"
 BAKE_BREAD_LOG="$RUN_DIR/bake_bread.log"
 BAKE_CREAMPIE_LOG="$RUN_DIR/bake_creampie.log"
 PREVIOUS_BAKE_LOG="$RUN_DIR/previous_bake.log"

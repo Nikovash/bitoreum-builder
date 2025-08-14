@@ -46,89 +46,6 @@ log "IS_AMPERE=$IS_AMPERE"
 log "IS_WINDOWS=$IS_WINDOWS"
 log "NO_QT=${NO_QT:-0}"
 
-# === Discover safe configure flags (filters tests/bench) ===
-gather_configure_flags() {
-  local raw
-  mapfile -t raw < <(
-    ./configure --help 2>/dev/null \
-    | sed -n 's/^[[:space:]]\{0,2\}\(--[^[:space:]]\+\).*/\1/p' \
-    | grep -E '^(--(enable|disable|with|without)-' \
-    | grep -Evi '(test|tests|bench)' \
-    | sort -u
-  )
-  CFG_FLAGS=()
-  local RE='^(--(enable|disable|with|without)-[A-Za-z0-9._+-]+)(=.*)?$'
-  for f in "${raw[@]}"; do
-    [[ $f =~ $RE ]] && CFG_FLAGS+=("${BASH_REMATCH[1]}")
-  done
-  # de-dup
-  IFS=$'\n' read -r -d '' -a CFG_FLAGS < <(printf "%s\n" "${CFG_FLAGS[@]}" | sort -u && printf '\0')
-}
-
-# === Interactive picker with fallbacks ===
-pick_configure_flags() {
-  gather_configure_flags
-  [[ ${#CFG_FLAGS[@]} -eq 0 ]] && { err "No configurable flags found."; return 1; }
-
-  local selections=()
-
-  if command -v fzf >/dev/null 2>&1; then
-    local pre=""
-    [[ -n "${LAST_CONFIGURE_OPTS:-}" ]] && pre="$(printf "%s\n" $LAST_CONFIGURE_OPTS)"
-    # shellcheck disable=SC2207
-    selections=($(printf "%s\n" "${CFG_FLAGS[@]}" \
-      | fzf --multi --ansi --prompt="Select flags (TAB to toggle, ENTER to accept): " \
-            --preview-window=down:3:wrap --preview='echo {}' \
-            --query="${pre// / }" 2>/dev/null))
-  elif command -v dialog >/dev/null 2>&1 || command -v whiptail >/dev/null 2>&1; then
-    local ui cmd items=() tmp
-    if command -v dialog >/dev/null 2>&1; then ui=dialog; else ui=whiptail; fi
-    for f in "${CFG_FLAGS[@]}"; do
-      if [[ " ${LAST_CONFIGURE_OPTS:-} " == *" $f "* ]]; then
-        items+=("$f" "$f" "on")
-      else
-        items+=("$f" "$f" "off")
-      fi
-    done
-    tmp=$(mktemp)
-    if [[ $ui == dialog ]]; then
-      cmd=(dialog --separate-output --checklist "Select flags" 20 90 15)
-    else
-      cmd=(whiptail --separate-output --checklist "Select flags" 20 90 15)
-    fi
-    "${cmd[@]}" "${items[@]}" 2> "$tmp" || true
-    mapfile -t selections < "$tmp"
-    rm -f "$tmp"
-  else
-    echo
-    log "Select configure options to APPLY (space-separated indices, Enter to skip):"
-    local i _nums
-    for i in "${!CFG_FLAGS[@]}"; do
-      printf "  %2d) %s\n" "$((i+1))" "${CFG_FLAGS[$i]}"
-    done
-    echo
-    read -rp "Choice(s): " _nums
-    for n in $_nums; do
-      [[ $n =~ ^[0-9]+$ ]] && (( n>=1 && n<=${#CFG_FLAGS[@]} )) && selections+=("${CFG_FLAGS[$((n-1))]}")
-    done
-  fi
-
-  CONFIGURE_OPTS=""
-  ((${#selections[@]})) && CONFIGURE_OPTS="${selections[*]}"
-
-  echo
-  read -rp "Add extra flags (optional, e.g. --with-gui=qt5 --disable-zmq): " extra
-  [[ -n $extra ]] && CONFIGURE_OPTS="$CONFIGURE_OPTS $extra"
-  CONFIGURE_OPTS="${CONFIGURE_OPTS# }"
-  CONFIGURE_OPTS="${CONFIGURE_OPTS%% }"
-
-  # Always force these off (broken)
-  local FORCE_DISABLES="--disable-tests --disable-bench --disable-gui-tests"
-  CONFIGURE_OPTS="${CONFIGURE_OPTS:+$CONFIGURE_OPTS }$FORCE_DISABLES"
-
-  log "Using configure flags: ${CONFIGURE_OPTS:-<none>}"
-}
-
 # === Ask user action ===
 echo
 log "Select an option:"
@@ -146,11 +63,9 @@ case "$USER_CHOICE" in
 
 
     cd "$BITOREUM_DIR" || { err "Failed to cd into $BITOREUM_DIR"; exit 1; }
-
     make clean || true
     make distclean || true
     ./autogen.sh
-    pick_configure_flags || { err "Flag selection failed"; exit 1; }
 
     : > config.log
     : > build.log
