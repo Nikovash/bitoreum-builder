@@ -14,6 +14,18 @@ When prompted to enter a branch name, you can specify:
 
 ---
 
+## QT Optional Build
+A simple Y|n prompt that allows you do build or NOT build the QT binary, its resource intensive and not always needed
+
+Works by defining variables on build
+
+```diff
+NO_QT=1 // Should disable QT from being built during `depends` make
+BUILD_QT=false
+QT_OPTS="--with-gui=no" // In case QT is still made in `depends` disabled build in configure stage
+```
+---
+
 ## 📦 Custom Output Directories
 
 By default:
@@ -32,17 +44,6 @@ You can change these by editing the variables at the top of `build-bitoreum.sh`:
 BUILD_DIR="$HOME/bitoreum-build/build"
 COMPRESS_DIR="$HOME/bitoreum-build/compressed"
 ```
-
----
-
-## 🧪 Enable Unit Tests (Optional)
-
-By default, unit tests are disabled to speed up the build.  
-To enable them:
-
-1. Comment out or remove the `--disable-tests` flag in the `./configure` section
-2. Rerun the script
-
 ---
 
 ## 🧵 Thread Tuning
@@ -85,7 +86,6 @@ To detach and reattach:
 Ctrl+A D      # Detach
 screen -r     # Reattach
 ```
-
 ---
 
 ## ❗ Troubleshooting

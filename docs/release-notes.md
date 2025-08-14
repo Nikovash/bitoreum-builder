@@ -12,6 +12,7 @@
 
 # Version 0.9
 - Added First run provision so script does not attempt to update OS on each run, just the first time
+- Added better & simplified logging for this app its `bake_bread.log`
 - Added Pi 32 bit support
 - Added Windows 64 Bit Cross-Compile function
 - Fixed Pi commands for Ubuntu related to C+/+ hardening
@@ -20,4 +21,6 @@
 - Added better Pi4+ determination logic
 - *.tar.gz for Linux Builds
 - *.zip for Windows Builds
+- Logic clean up
+- Added ability to make or not make the QT wallet because its not always needed and is resource intensive
 - Updated and added documentation

@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
+# === Variables ===
 BAKE_VERSION="0.9"
+PWD_EXPR="$(pwd)"
 
 # Path to first-run marker (system-wide)
 BAKE_INIT="/opt/bake/bake.log"
@@ -9,18 +11,25 @@ BAKE_INIT="/opt/bake/bake.log"
 # Folder where the script was launched (don’t use $0; we want the run dir)
 RUN_DIR="$(pwd -P)"
 # Local session log
-BAKE_CAKE_LOG="$RUN_DIR/bake_cake.log"
-: > "$BAKE_CAKE_LOG"
+BAKE_PROCESS_LOG="$RUN_DIR/bake_bread.log"
+: > "$BAKE_PROCESS_LOG"
 # Previous successful depends build config
 PREVIOUS_BAKE_LOG="$RUN_DIR/previous_bake.log"
 
 log() {
-    echo -e "\033[1;32m[INFO] $1\033[0m" | tee -a "$BAKE_CAKE_LOG"
+    echo -e "\033[1;32m[INFO] $1\033[0m" | tee -a "$BAKE_PROCESS_LOG"
 }
 err() {
-    echo -e "\033[1;31m[ERROR] $1\033[0m" | tee -a "$BAKE_CAKE_LOG" >&2
+    echo -e "\033[1;31m[ERROR] $1\033[0m" | tee -a "$BAKE_PROCESS_LOG" >&2
 }
 
+# === Check for existing repo folder ===
+if [[ -d "$HOME/bitoreum-build/bitoreum" && -n "$(ls -A "$HOME/bitoreum-build/bitoreum" 2>/dev/null)" ]]; then
+    log "This script only bakes fresh recipies! To modify a previous bake, please use refire.sh"
+    exit 1
+fi
+
+# === Start Build Process ===
 log "Starting build..."
 
 # === Determine First Run ===
@@ -56,6 +65,7 @@ else
 BAKE_VERSION=$BAKE_VERSION
 SCRIPT_INSTALL=$RUN_DIR
 EOF
+    log "Bake version & Run_Dir has been updated"
 # === System setup (subsequent runs) ===
     log "Updating and installing required packages..."
     sudo apt update
@@ -94,6 +104,8 @@ else
     git clone https://github.com/Nikovash/bitoreum -b "$CHOICE"
 fi
 
+    log "Branch $CHOICE has been downloaded"
+    
 cd bitoreum/depends
 
 # === Select build architecture ===
@@ -158,20 +170,21 @@ case "$ARCH_CHOICE" in
   8) echo -e "\033[1;31m[EXIT] Build cancelled by user.\033[0m"; exit 0 ;;
   *) echo -e "\033[1;31m[ERROR] Invalid selection.\033[0m"; exit 1 ;;
 esac
+    log "Using HOST=${HOST_TRIPLE}"
 
 # === Ask if QT should be built ===
 read -rp "Build with QT (GUI Core Wallet)? [Y/n]: " QT_CHOICE
 QT_CHOICE=${QT_CHOICE:-Y}
 
 if [[ "$QT_CHOICE" =~ ^[Nn]$ ]]; then
+    NO_QT=1
     BUILD_QT=false
-    QT_OPTS="--without-gui"
+    QT_OPTS="--with-gui=no"
 else
     BUILD_QT=true
     QT_OPTS=""
 fi
-
-log "QT build: $BUILD_QT"
+    log "Will build QT: $BUILD_QT"
 
 # === Windows toolchain (and proper strip) ===
 if $IS_WINDOWS; then
@@ -179,9 +192,8 @@ if $IS_WINDOWS; then
   sudo apt-get install -y g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 binutils-mingw-w64-x86-64 nsis
   sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
   sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+  log "Attempting Windows_x86_64 Cross Compile Build"
 fi
-
-log "Using HOST=${HOST_TRIPLE}"
 
 # === PI4 toggle ===
 PI4_BUILD="${PI4_BUILD:-false}"
@@ -189,8 +201,8 @@ PI4_BUILD="${PI4_BUILD:-false}"
 if [[ "$PI4_BUILD" == true ]]; then
   PWD_EXPR='$(pwd)'
   CONFIGURE_HOST_OPTS="--host=depends/aarch64-linux-gnu"
+  log "Attempting Raspberry 4+ build..."
 else
-  PWD_EXPR='$(pwd)'
   CONFIGURE_HOST_OPTS=""
 fi
 
@@ -203,15 +215,15 @@ export FALLBACK_DOWNLOAD_PATH=https://bitoreum.cc/depends/
 touch build.log
 make -j$(nproc) HOST=${HOST_TRIPLE} 2>&1 | tee build.log
 
-# Only reached if 'make' succeeded (thanks to set -e and pipefail)
+# Only reached if 'make depends' succeeded
 {
   echo "HOST_TRIPLE=$HOST_TRIPLE"
-  echo "IS_PI4_OR_NEWER=$IS_PI4_OR_NEWER"
+  echo "IS_PI4_OR_NEWER=$PI4_BUILD"
   echo "IS_AMPERE=$IS_AMPERE"
   echo "IS_WINDOWS=$IS_WINDOWS"
 } > "$PREVIOUS_BAKE_LOG"
 
-log "Recorded depends build config to $PREVIOUS_BAKE_LOG"
+log "Recorded Depends Build config to $PREVIOUS_BAKE_LOG"
 
 # === Configure and build ===
 cd ..
@@ -232,7 +244,7 @@ touch build.log config.log
     ${CONFIGURE_HOST_OPTS} ${QT_OPTS} 2>&1 | tee config.log
 
 # Report configure command for syntax
-log "./configure --prefix=\"${PWD_EXPR}/depends/${HOST_TRIPLE}\"${CONFIGURE_HOST_OPTS} ${QT_OPTS}"
+    log "./configure --prefix="${PWD_EXPR}/depends/${HOST_TRIPLE}" ${CONFIGURE_HOST_OPTS} ${QT_OPTS}"
 # End
 
 make -j"$(nproc)" 2>&1 | tee build.log

@@ -57,13 +57,17 @@ git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
 chmod +x bake.sh
 ```
-Launch a screen (Optional but reccomended):
+Launch a screen (Optional but recommended):
 ```bash
 screen -S build
 ```
 Once insides the screen we can now run the app:
 ```bash
 ./bake.sh
+```
+You can tail the less critical and noisy logging of this script by tailing the file created called `bake_bread.log`
+```bash
+tail -f bake_bread.log
 ```
 You can disconnect the screen at any time by pressing:
 ```bash

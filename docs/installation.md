@@ -4,7 +4,7 @@ This guide walks you through the prerequisites and steps for installing and prep
 
 ## 🧾 Requirements
 
- * A Linux system (tested on Ubuntu 20.04)
+ * A Linux system (tested on Ubuntu 18.04)
  * `sudo` privileges
  * Internet connection
 
