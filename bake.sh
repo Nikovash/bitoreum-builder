@@ -8,6 +8,7 @@ alias python3=python3.10
 # === Variables ===
 BAKE_VERSION="0.9"
 REPO_ROOT="$HOME/bitoreum-build/bitoreum"
+CONFIGURE_FLAGS=""
 
 add_flag() {
     if [[ -n "$CONFIGURE_FLAGS" ]]; then
