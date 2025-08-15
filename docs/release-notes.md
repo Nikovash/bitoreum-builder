@@ -35,3 +35,9 @@
 - Updated documents
 - Increased testing hosts and targets to ensure extreme confidence when used on Ubuntu, Mint Linux, AlmaLinux, Oracle Linux, and, to a lesser extent, Debian
 - Completed `dishy.sh`
+
+# Version 1.1
+- Cleaned up code of weird formatting errors, likely carry-over from copy and paste on Windows
+- Removed most debuging code
+- Corrected Artifact naming for consistancy
+
