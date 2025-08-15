@@ -11,7 +11,7 @@ Before running the script:
 ```bash
 git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
-chmod +x bake.sh
+(chmod +x bake.sh) // Optional, starting in version 1.0 all scripts are deployed with executable flags
 ```
 
 (Optional but recommended)
@@ -36,7 +36,7 @@ The script will prompt you with several options:
 
 ## 📌 Step-by-Step Prompts
 
-### 1️⃣ Clone Target
+### 1 | Clone Target
 
 You will be asked:
 
@@ -49,7 +49,7 @@ Clone from 'main' or specify a branch name (case-sensitive)? [main/branch-name]:
 
 ---
 
-### 2️⃣ Select Build Target
+### 2 | Select Build Target
 
 ```
 1) Linux 64-bit        (x86_64-pc-linux-gnu)
@@ -58,13 +58,19 @@ Clone from 'main' or specify a branch name (case-sensitive)? [main/branch-name]:
 4) Linux ARM 64-bit    (aarch64-linux-gnu)
 5) Raspberry Pi 4+     (aarch64-linux-gnu)
 6) Oracle Ampere ARM   (aarch64-linux-gnu)
-7) Cancel and exit
+7) Windows 64-bit      (x86_64-w64-mingw32)
+8) Cancel and exit
 ```
 
 - Choose the number corresponding to your platform.
-- Option 7 will exit the script.
-
+- Option 8 will exit the script.
 ---
+
+### 3 | Determine if you want QT (GUI) Wallet
+```
+Y|n prompt
+```
+
 
 ## 🛠️ What the Script Does
 
@@ -72,12 +78,12 @@ Clone from 'main' or specify a branch name (case-sensitive)? [main/branch-name]:
 - Sets up build dependencies
 - Runs the `depends/` system
 - Configures, compiles, and links
-- Builds three types:
+- Builds three binary types:
   - ✅ Stripped binary
   - ✅ Not-stripped binary
-  - ✅ Debug build
+  - ✅ Debug binary
 - Generates checksums for each
-- Compresses each build directory into `.tar.gz`
+- Compresses each build directory into `.tar.gz` or `*.zip` in the case of a Windows build
 
 ---
 
@@ -89,7 +95,7 @@ You’ll find the build output and compressed files in:
 ~/bitoreum-build/compressed/
 ```
 
-Each `.tar.gz` archive will contain:
+Each `.tar.gz` (`*.zip` for Windows builds) archive will contain:
 
 - Compiled binaries
 - Matching `checksums-<version>.txt` file
@@ -98,13 +104,12 @@ Each `.tar.gz` archive will contain:
 
 ## 🧹 Cleaning Up
 
-After the build, once you have stored the files you want safely you can just erase the bitoreum-build folder
+After the build, once you have stored the files you want safely you can just erase the bitoreum-build folder by utilizing your very own dishy.sh
 
 ```bash
-cd
-rm -rf bitoreum-build
+$HOME/bitoreum-builder/./dishy.sh
 ```
-## Command above is destructive so make sure you have moved the file(s) you want ouf of that folder FIRST!
+## Command above is destructive so make sure you have moved the file(s) you want ouf of the `bitoreum-build` folder FIRST!
 ---
 
 > Next: [Advanced Options](advanced-options.md)

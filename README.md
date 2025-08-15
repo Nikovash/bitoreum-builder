@@ -46,16 +46,17 @@ Supports multiple target architectures and generates stripped, not-stripped, and
 ## 📥 Usage
 
 ### 🔹 1. install git
+Some distros do not install this by default
 ```bash
 sudo apt update
-sudo apt install git
+sudo apt install git -y
 ```
 
 ### 🔹 2. Clone and prepare
 ```bash
 git clone https://github.com/Nikovash/bitoreum-builder.git
 cd bitoreum-builder
-chmod +x bake.sh
+(chmod +x bake.sh) // Optional now is shipped with executable enabled by default
 ```
 Launch a screen (Optional but recommended):
 ```bash
@@ -65,6 +66,21 @@ Once insides the screen we can now run the app:
 ```bash
 ./bake.sh
 ```
+On first run the app will update your system and install the bare minimum system packages for use. Optioanl packages for cross compiling are beyond the scope of this document. Come find me I can probably help you!
+
+Once the system is updated python 3.10.17 will be made an `altinstall`, this is sometimes a requirement of two of the dependancies used. this installes it along side your systems python not as a replacement for it so nothing breaks!
+
+Once this is done, you be asked for a branch to `bake` from the default is `main`, though that is not the current release. You can pick from any branch releases will have a `v` in front of them. As an example, at the time of this writing, the current release would be branch `v4.1.0.0`.
+
+One a valid brance is selected you will be asked if you want to include QT, which is the GUI wallet, not everyone needs or wants it, and it is increadably resource heavy. So now if you now need it you can shave a lot of time off your build by not building for it!
+
+That is it, unless there is an error, which normally only happens when cross compiling, the script will run and at the end you will have three version in two formats:
+- Build (release)
+- Not-Stripe
+- Debug
+
+All of which will be uncompressed in their respective folder found at `~/bitoreum-build` and the compressed version found in `~/bitoreum-build/compressed` all with checksums.
+
 You can tail the less critical and noisy logging of this script by tailing the file created called `bake_bread.log`
 ```bash
 tail -f bake_bread.log

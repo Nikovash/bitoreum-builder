@@ -62,16 +62,10 @@ If that folder is empty, the build did not succeed.
 
 ### 🔁 Rebuilding After Failure
 
-If a build fails or you change targets:
-
+If a build fails OR you want to start over, use `dishy.sh`:
 ```bash
-make clean && make distclean
-./autogen.sh
-./configure --prefix=...  # match your original config
-make -j$(nproc)
+$HOME/bitoreum-builder/./dishy.sh
 ```
-
-Or simply re-run the script.
 
 ---
 
