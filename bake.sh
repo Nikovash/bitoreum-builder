@@ -6,7 +6,7 @@ alias python3=python3.10
 
 
 # === Variables & Flags ===
-BAKE_VERSION="1.0"
+BAKE_VERSION="1.1"
 REPO_ROOT="$HOME/bitoreum-build/bitoreum"
 CONFIGURE_FLAGS=""
 add_flag() {
@@ -50,7 +50,6 @@ if [[ ! -f "$BAKE_INIT" ]]; then
 else
     FIRST_RUN=false
 fi
-
 log "First run: $FIRST_RUN"
 
 # === Determine First Run ===
@@ -85,7 +84,7 @@ EOF
         python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
         libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip
 fi
-    
+
 # === Python 3.10.17 ===
 PYTHON_SRC="/usr/src/Python-3.10.17"
 if [ ! -d "$PYTHON_SRC" ]; then
@@ -97,10 +96,10 @@ if [ ! -d "$PYTHON_SRC" ]; then
     sudo ./configure --enable-optimizations
     sudo make -j$(nproc)
     sudo make altinstall
+    log "Python 3.10.17 sucsessfully made altinstall"
 else
     log "Python 3.10.17 already installed."
 fi
-
 export PATH="/usr/bin:$PATH"
 
 # === Clone repo ===
@@ -114,7 +113,7 @@ else
     git clone https://github.com/Nikovash/bitoreum -b "$CHOICE"
 fi
 
-	log "Branch $CHOICE has been downloaded" 
+    log "Branch $CHOICE has been downloaded"
 cd "${REPO_ROOT}/depends"
 
 # === Select build architecture ===
@@ -192,9 +191,8 @@ if [[ "$QT_CHOICE" =~ ^[Nn]$ ]]; then
 else
     BUILD_QT=true
 fi
+    log "Will build QT: $BUILD_QT"
 
-	log "Will build QT: $BUILD_QT"
-    
 # === Per-target binary names (respect QT choice) ===
 if $IS_WINDOWS; then
     if $BUILD_QT; then
@@ -262,11 +260,6 @@ BIN_SUBDIR="bitoreum-v${VERSION}"
 
 touch build.log config.log
 ./autogen.sh
-
-# Report configure command for syntax
-	log "./configure --prefix=\"${REPO_ROOT}/depends/${HOST_TRIPLE}\" ${CONFIGURE_FLAGS}"
-# End
-
 ./configure --prefix="${REPO_ROOT}/depends/${HOST_TRIPLE}" ${CONFIGURE_FLAGS} 2>&1 | tee config.log
 make -j"$(nproc)" 2>&1 | tee build.log
 
@@ -294,14 +287,9 @@ fi
 make clean && make distclean
 touch build_debug.log config_debug.log
 ./autogen.sh
-
 # Add debug flag without breaking spacing
 add_flag "--enable-debug"
-
-# Report configure command for syntax
-	log "./configure --prefix=\"${REPO_ROOT}/depends/${HOST_TRIPLE}\" ${CONFIGURE_FLAGS}"
-# End
-
+#End
 ./configure --prefix="${REPO_ROOT}/depends/${HOST_TRIPLE}" ${CONFIGURE_FLAGS} 2>&1 | tee config_debug.log
 make -j"$(nproc)" 2>&1 | tee build_debug.log
 
@@ -315,9 +303,9 @@ done
 COIN_NAME=bitoreum
 
 if $PI4_BUILD; then
-    ARCH_TYPE="Pi4_aarch64"
+    ARCH_TYPE="Pi4_ARM_64"
 elif $AMPERE_BUILD; then
-    ARCH_TYPE="Oracle-Ampere_aarch64"
+    ARCH_TYPE="Oracle-Ampere_ARM_64"
 elif $IS_WINDOWS; then
     ARCH_TYPE="Win64_x86"
 else
