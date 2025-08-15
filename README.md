@@ -7,7 +7,7 @@
 A fully automated build script for compiling [Crystal Bitoreum](https://github.com/Nikovash/bitoreum) or other forks.  
 Supports multiple target architectures and generates stripped, not-stripped, and debug builds, each with full checksums and compressed archives.
 
-**Version:** 0.9
+**Version:** 1.1
 
 ---
 
