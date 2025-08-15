@@ -6,7 +6,7 @@ alias python3=python3.10
 
 
 # === Variables & Flags ===
-BAKE_VERSION="0.9"
+BAKE_VERSION="1.0"
 REPO_ROOT="$HOME/bitoreum-build/bitoreum"
 CONFIGURE_FLAGS=""
 add_flag() {
@@ -313,15 +313,23 @@ done
 
 # === Copressed file Nmae Variables ===
 COIN_NAME=bitoreum
+
 if $PI4_BUILD; then
-    ARCH_TYPE="pi4"
+    ARCH_TYPE="Pi4_aarch64"
 elif $AMPERE_BUILD; then
-    ARCH_TYPE="Oracle-Ampere"
+    ARCH_TYPE="Oracle-Ampere_aarch64"
 elif $IS_WINDOWS; then
-    ARCH_TYPE="Win64"
+    ARCH_TYPE="Win64_x86"
 else
-	ARCH_TYPE=$(uname -m)
+    case "$HOST_TRIPLE" in
+        x86_64-pc-linux-gnu) ARCH_TYPE="x86_64" ;;
+        i686-pc-linux-gnu)   ARCH_TYPE="i686" ;;
+        arm-linux-gnueabihf) ARCH_TYPE="armv7l" ;;
+        aarch64-linux-gnu)   ARCH_TYPE="aarch64" ;;
+        *)                   ARCH_TYPE="$HOST_TRIPLE" ;;  # Fallback
+    esac
 fi
+
 OS="$(. /etc/os-release && echo "${ID}-${VERSION_ID}")"
 if [[ "$OS" == "ubuntu-18.04" ]]; then
 	OS="Generic-Linux"

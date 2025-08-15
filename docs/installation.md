@@ -4,7 +4,7 @@ This guide walks you through the prerequisites and steps for installing and prep
 
 ## 🧾 Requirements
 
- * A Linux system (tested on Ubuntu 18.04)
+ * A Linux system (tested on Ubuntu 18.04 - 24.04)
  * `sudo` privileges
  * Internet connection
 
@@ -14,10 +14,10 @@ These packages are installed automatically by the script, but you can install th
   ```bash
   sudo apt update
   sudo apt dist-upgrade -y
-  sudo apt install -y \
-      git curl build-essential libtool autotools-dev automake pkg-config \
-      python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev \
-      libx11-dev libxext-dev libxrender-dev libxft-dev libxrandr-dev libffi-dev
+  sudo apt-get install -y \
+	  git curl build-essential libtool autotools-dev automake pkg-config \
+      python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
+      libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip
   ```
 
 ## 🐍 Python 3.10.17 (First-Time Only)

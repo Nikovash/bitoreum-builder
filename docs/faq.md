@@ -14,22 +14,23 @@ A: There are a couple of reasons,
 
 A: The script supports Debian fork Linux Distributions with the following architecture types:
 
-- Linux 64-bit (`x86_64-pc-linux-gnu`)
-- Linux 32-bit (`i686-pc-linux-gnu`)
-- Linux ARM 32-bit (`arm-linux-gnueabihf`)
-- Linux ARM 64-bit (`aarch64-linux-gnu`)
-- Raspberry Pi 4 or better (`aarch64-linux-gnu`)
-- Ampere (`aarch64-linux-gnu`)
+- Linux 64-bit		(`x86_64-pc-linux-gnu`)
+- Linux 32-bit		(`i686-pc-linux-gnu`)
+- Linux ARM 32-bit	(`arm-linux-gnueabihf`)
+- Linux ARM 64-bit	(`aarch64-linux-gnu`)
+- Raspberry Pi 4+	(`aarch64-linux-gnu`)
+- Ampere			(`aarch64-linux-gnu`)
+- Windows 64-bit	(`x86_64-w64-mingw32`) Cross compile
 
 ---
 
 ### 🐍 Q: Why does it install Python 3.10.17?
 
-A: Crystal Bitoreum was forked from, Bitoreum, which was forked from Raptoreum, hic was forked from Dash, which was based on Bitcoin, some of these dependecies require Python 3.10. Modern OS's have moved onto Python 3.12+. This script installs the last version of Python 3.10 as an alt install. This does not disrupt the python required for your OS and can be called relative to the instance of a terminal window, hence the use of screen.
+A: Crystal Bitoreum was forked from, Bitoreum, which was forked from Raptoreum, which was forked from Dash, which was based on Bitcoin, some of these dependecies require Python 3.10. Modern OS's have moved onto Python 3.12+. This script installs the last version of Python 3.10 as an alt install. This does not disrupt the python required for your OS and can be called relative to the instance of a terminal window, hence the use of screen.
 
 ---
 
-### 📦 Q: Where are the final `.tar.gz` files?
+### 📦 Q: Where are the final `.tar.gz` and/or `*.zip` files?
 
 A: Compressed binaries are placed in:
 
@@ -37,13 +38,13 @@ A: Compressed binaries are placed in:
 ~/bitoreum-build/compressed/
 ```
 
-Each `.tar.gz` archive includes binaries and a checksum file.
+Each `.tar.gz` or `*.zip` archive includes binaries and a checksum file.
 
 ---
 
 ### 🔁 Q: Can I run the script multiple times?
 
-A: No, you have delete the `bitoreum-build` folder this is a bug that needs to be addressed for later use
+A: No, you have delete the `bitoreum-build` folder this is a bug that needs to be addressed for later use, for a simplified cleaning process we have included your very own `dishy.sh` a cleaning script that resets everything back for a clean kitchen!
 
 ---
 
@@ -78,18 +79,17 @@ A:
 
 ### 🔑 Q: Can I build with my own fork?
 
-A: Absolutely. You just need to modify the bake.sh file to add in your own GitHub repository URL
+A: Absolutely. You just need to modify the bake.sh file to add in your own GitHub repository URL. You may also need build dependacies that I do nopt so be away of that!
 
 ---
 
 ### 📜 Q: How do I verify checksums?
 
-Inside each build folder or `.tar.gz` archive:
+Inside each build folder or `.tar.gz` or `*.zip` archive:
 
 ```bash
 sha256sum -c checksums-<version>.txt
 ```
-
 ---
 
 ### 🧼 Q: How do I clean up old builds?

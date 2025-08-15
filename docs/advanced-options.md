@@ -22,7 +22,7 @@ Works by defining variables on build
 ```diff
 NO_QT=1 // Should disable QT from being built during `depends` make
 BUILD_QT=false
-QT_OPTS="--with-gui=no" // In case QT is still made in `depends` disabled build in configure stage
+CONFIGURE_FLAGS="--with-gui=no" // In case QT is still made in `depends` disabled build in configure stage
 ```
 ---
 
@@ -59,7 +59,6 @@ Which uses all available CPU cores. You can limit this by modifying:
 ```bash
 make -j4  # for 4 threads
 ```
-
 ---
 
 ## 🧾 Debug Builds
@@ -92,17 +91,21 @@ screen -r     # Reattach
 
 ### "Missing binaries" errors?
 
-Ensure the script didn't fail during `make`.  
-Check the log files:
+Ensure the script didn't fail during `make` process, thse logs are found in `~/bitoreum-build/bitoreum/depends` and `~/bitoreum-build/bitoreum` folders respectively
 
 - `build.log`
 - `build_debug.log`
 - `config.log`
 - `config_debug.log`
 
+There are now script specific log(s) now too that are found in the `bitoreum-builder`
+- `bake_bread.log` (bake.sh)
+- `bake_creampie.log` (refire.sh)
+- `dishy.sh` only outputs on the screen what he is doing and doesn't log anything, because dishy's just do...
+
 ### Permission issues?
 
-Make sure the script is executable:
+Make sure the script is executable, starting in version 1.0 {bake.sh, refire.sh, & dishy.sh} come flagged executable on release, but sometimes things happen:
 
 ```bash
 chmod +x bake.sh
