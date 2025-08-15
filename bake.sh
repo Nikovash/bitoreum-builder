@@ -323,9 +323,9 @@ elif $IS_WINDOWS; then
 else
     case "$HOST_TRIPLE" in
         x86_64-pc-linux-gnu) ARCH_TYPE="x86_64" ;;
-        i686-pc-linux-gnu)   ARCH_TYPE="i686" ;;
-        arm-linux-gnueabihf) ARCH_TYPE="armv7l" ;;
-        aarch64-linux-gnu)   ARCH_TYPE="aarch64" ;;
+        i686-pc-linux-gnu)   ARCH_TYPE="x86_32" ;;
+        arm-linux-gnueabihf) ARCH_TYPE="ARM_32" ;;
+        aarch64-linux-gnu)   ARCH_TYPE="ARM_64" ;;
         *)                   ARCH_TYPE="$HOST_TRIPLE" ;;  # Fallback
     esac
 fi
