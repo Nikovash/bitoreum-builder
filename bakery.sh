@@ -31,11 +31,6 @@ err() {
   echo -e "\033[1;31m[ERROR] $*\033[0m" >> "$LOG_FILE"
 }
 
-# --- Timestamps (start) ---
-START_EPOCH="$(date +%s)"
-START_HUMAN="$(date +"%Y-%m-%d %H:%M:%S %Z")"
-log "Commercial Bake Start: ${START_HUMAN}"
-
 REPO_PARENT="$HOME/bitoreum-build"
 REPO_ROOT="$REPO_PARENT/bitoreum"
 DEPENDSDIR="$REPO_ROOT/depends"
@@ -120,6 +115,11 @@ else
     log "Python 3.10.17 already installed."
 fi
 export PATH="/usr/bin:$PATH"
+
+# --- Timestamps (start) ---
+START_EPOCH="$(date +%s)"
+START_HUMAN="$(date +"%Y-%m-%d %H:%M:%S %Z")"
+log "Commercial Bake Start: ${START_HUMAN}"
 
 # === Temp Export for flaky depends on v4.1.0.0 ===
 if [[ "$BRANCH_OR_TAG" == "v4.1.0.0" ]]; then
