@@ -249,14 +249,17 @@ ensure_windows_toolchain() {
 # --- Build a single target ---
 build_target() {
   local friendly="$1" host="$2" qt="$3" is_pi="$4" is_amp="$5" is_win="$6"
-  log "---- Building target: ${friendly} | HOST=${host} | QT=${qt} ----"
+  log "-*- Baking deliverable: ${friendly} | HOST=${host} | QT=${qt} -*-"
 
-# --- Depends clean & rebuild ---
+# --- Depends clean & rebuild (honor QT=n) ---
   pushd "$DEPENDSDIR" >/dev/null
-  make clean || true
-  make distclean || true
-  make -j"$(nproc)" HOST="$host"
+  make clean >>"$LOG_FILE" 2>&1 || true
+  make distclean >>"$LOG_FILE" 2>&1 || true
+  dep_qt_arg=""
+  [[ "${qt,,}" == "n" ]] && dep_qt_arg="NO_QT=1"
+  make -j"$(nproc)" HOST="$host" $dep_qt_arg >>"$LOG_FILE" 2>&1
   popd >/dev/null
+
 
 # --- Main application clean, autogen, configure, build ---
   pushd "$REPO_ROOT" >/dev/null
@@ -265,22 +268,7 @@ build_target() {
   ./autogen.sh
   local cfg_flags=""
   [[ "${qt,,}" == "n" ]] && cfg_flags+=" --with-gui=no"
-  
-  
-# --- Configure (treats for Debian or Ubuntu ---
-  if [[ -r /etc/os-release ]]; then . /etc/os-release; fi
-  if [[ "${ID:-}" == "debian" ]]; then
-	cs="${DEPENDSDIR}/${host}/share/config.site"
-	if [[ -f "$cs" ]]; then
-      log "Debian detected; using CONFIG_SITE=$cs"
-      CONFIG_SITE="$cs" ./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
-	else
-      err "Debian detected but $cs not found; falling back to plain configure"
-      ./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
-	fi
-  else
-	./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
-  fi
+  ./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
   make -j"$(nproc)"
 
 # --- Determine binaries to package ---
