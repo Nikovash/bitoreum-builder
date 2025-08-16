@@ -6,7 +6,6 @@ alias python3=python3.10
 
 
 # === Variables & Flags ===
-BAKE_VERSION="1.1"
 REPO_ROOT="$HOME/bitoreum-build/bitoreum"
 CONFIGURE_FLAGS=""
 add_flag() {
@@ -16,9 +15,6 @@ add_flag() {
         CONFIGURE_FLAGS="$1"
     fi
 }
-
-# Path to first-run marker (system-wide)
-BAKE_INIT="/opt/bake/bake.log"
 
 # Folder where the script was launched (don’t use $0; we want the run dir)
 RUN_DIR="$(pwd -P)"
@@ -34,6 +30,19 @@ log() {
 err() {
     echo -e "\033[1;31m[ERROR] $1\033[0m" | tee -a "$BAKE_PROCESS_LOG" >&2
 }
+
+# === Load version from version.properties (fallback: dev) ===
+VERSION_FILE="${RUN_DIR}/version.properties"
+BAKE_VERSION="dev"
+if [[ -f "$VERSION_FILE" ]]; then
+  if grep -qE '^\s*BAKE_VERSION\s*=' "$VERSION_FILE"; then
+    source "$VERSION_FILE"
+  else
+    BAKE_VERSION="$(<"$VERSION_FILE")"
+  fi
+  BAKE_VERSION="${BAKE_VERSION//,/\.}"
+fi
+BAKE_INIT="/opt/bake/bake.log"
 
 # === Check for existing repo folder ===
 if [[ -d "$HOME/bitoreum-build/bitoreum" && -n "$(ls -A "$HOME/bitoreum-build/bitoreum" 2>/dev/null)" ]]; then
@@ -58,7 +67,7 @@ if [[ "$FIRST_RUN" == true ]]; then
     sudo mkdir -p /opt/bake
     sudo tee "$BAKE_INIT" > /dev/null <<EOF
 # Bake configuration
-BAKE_VERSION=0.9
+BAKE_VERSION=$BAKE_VERSION
 SCRIPT_INSTALL=${RUN_DIR}
 EOF
     log "Configuration file created at $BAKE_INIT"

@@ -41,3 +41,13 @@
 - Removed most debuging code
 - Corrected Artifact naming for consistancy
 
+#Version 1.2
+- Production Version
+- created bakery.sh - the batch release maker
+- Corrected Version Init on first run
+- Added universal script versioning
+- Added Release archive to match Github Runner Actions
+- Added notes on cross compile OS packages
+- `upload` utility is now shipped as executable
+- Updated `upload`'s README.md
+- Added `bakery.sh` usage 

@@ -1,0 +1,7 @@
+Linux 64-bit,y,QT=y
+Linux 32-bit,y,QT=y
+Linux ARM 32-bit,y,QT=y
+Linux ARM 64-bit,y,QT=y
+Raspberry Pi 4+,n,QT=y
+Oracle Ampere ARM,n,QT=n
+Windows 64-bit,y,QT=y

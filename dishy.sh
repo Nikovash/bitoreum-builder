@@ -6,6 +6,7 @@ RUN_DIR="$(pwd -P)"
 BITOREUM_DIR="$HOME/bitoreum-build"
 BAKE_BREAD_LOG="$RUN_DIR/bake_bread.log"
 BAKE_CREAMPIE_LOG="$RUN_DIR/bake_creampie.log"
+BAKERY_LOG="$RUN_DIR/bakery.log"
 PREVIOUS_BAKE_LOG="$RUN_DIR/previous_bake.log"
 
 log() { echo -e "\033[1;32m[INFO] $1\033[0m"; }
@@ -30,7 +31,6 @@ fi
 
 # Remove logs if present
 log "Removing logs if present."
-rm -f -- "$BAKE_BREAD_LOG" "$BAKE_CREAMPIE_LOG" "$PREVIOUS_BAKE_LOG"
+rm -f -- "$BAKE_BREAD_LOG" "$BAKE_CREAMPIE_LOG" "$PREVIOUS_BAKE_LOG" "$BAKERY_LOG"
 
 log "The Kitchen is clean CHEF..."
-exit 0
