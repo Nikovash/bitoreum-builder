@@ -1,17 +1,22 @@
 # Bakery Usage Guide
 
-this is an extremely streamlined batch maker basic usage is just:
+This is an extremely streamlined batch maker. Basic usage:
 
-./bakery.sh <Brach_OR_Tag> Example:
+```bash
+./bakery.sh <branch_or_tag>
+# Example:
+```
 ```bash
 ./bakery.sh v4.1.0.0
 ```
-The script will attempt to go unless it hits cross compile errors and exits
 
-## Recipie Book
+This script will run until it complets or encounters a cross-compile errors, at which point it exits.
 
-There is one other piece of data that if it isnt there it will create a `recipe_book.conf` for what builds it will attempt and if a QT will be built
-```diff
+## The Recipe Book
+
+If `recipe_book.conf` is missing or corrupted, the script will (re)create it. THe following is a visual example, which can also be found in `recipe_book.sample`
+
+```text
 Linux 64-bit,y,QT=y
 Linux 32-bit,y,QT=y
 Linux ARM 32-bit,y,QT=y
@@ -20,6 +25,11 @@ Raspberry Pi 4+,n,QT=y
 Oracle Ampere ARM,n,QT=n
 Windows 64-bit,y,QT=y
 ```
-The order is important. **Item 1** is the build name or $TRIPLE_HOST. **Item 2** is if this is going to be built with y|n flags. **Item 3** is if QT is going to be built
 
-### This script will likey fail unless you have all the headers for corss copile installed on your system, that is outside the socpe of this script
+The order above is important. The comma-delimited items are defined:
+
+- **Item 1**: Build name or `$TRIPLE_HOST`
+- **Item 2**: Whether this target will be built (`y|n`)
+- **Item 3**: Whether QT will be built
+
+> **Note:** This script will likely fail unless you have all headers for cross-compiling installed on your system. Installing those is outside the scope of this script and project.
