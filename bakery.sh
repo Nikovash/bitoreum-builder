@@ -311,10 +311,10 @@ build_target() {
   arch_label="$(arch_type_label "$host" "$is_pi" "$is_amp" "$is_win")"
 
   if [[ "$is_win" == "true" ]]; then
-    archive_name="${COIN_NAME}-Generic-${arch_label}${RELEASE_SUFFIX}-${VERSION}.zip"
+    archive_name="${COIN_NAME}-Generic-${arch_label}-${RELEASE_SUFFIX}-${VERSION}.zip"
     (cd "$BUILD_BASE" && zip -r "${COMPRESS_DIR}/${archive_name}" "$bin_subdir") >>"$LOG_FILE" 2>&1
   else
-    archive_name="${COIN_NAME}-${os_label}_${arch_label}${RELEASE_SUFFIX}-${VERSION}.tar.gz"
+    archive_name="${COIN_NAME}-${os_label}_${arch_label}-${RELEASE_SUFFIX}-${VERSION}.tar.gz"
     (cd "$BUILD_BASE" && tar -cf - "$bin_subdir" | gzip -9 > "${COMPRESS_DIR}/${archive_name}")
   fi
 
