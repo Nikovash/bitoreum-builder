@@ -9,21 +9,21 @@ set -euo pipefail
 # - Cleans depends & main between builds
 # - Release-only builds (stripped)
 # - Artifacts in ~/special-delivery
-# - bakery.log: only [INFO]/[ERROR] entries (no command output)
+# - bakery.log: shows [INFO]/[ERROR] {log} entries
 # ===========================
 
-# Where we RUN the script from (not where it's stored)
+# --- Where script is run from ---
 RUN_DIR="$(pwd -P)"
 LOG_FILE="${RUN_DIR}/bakery.log"
 
-# Run dishy immediately (best-effort, before creating bakery.log)
+# ---Run dishy.sh to ensure bake will run --- 
 if [[ -x "${RUN_DIR}/dishy.sh" ]]; then
   "${RUN_DIR}/dishy.sh" || true
 fi
-
-# Fresh log file after cleanup
+# --- Create empty bakery.log --- 
 : > "$LOG_FILE"
 
+# --- Loge Entries are now Howebrew Green ---
 log() {
   echo -e "\033[1;32m[INFO] $*\033[0m" >> "$LOG_FILE"
 }
@@ -31,6 +31,7 @@ err() {
   echo -e "\033[1;31m[ERROR] $*\033[0m" >> "$LOG_FILE"
 }
 
+# --- Define Script Variables ---
 REPO_PARENT="$HOME/bitoreum-build"
 REPO_ROOT="$REPO_PARENT/bitoreum"
 DEPENDSDIR="$REPO_ROOT/depends"
@@ -41,7 +42,7 @@ COIN_NAME="bitoreum"
 RELEASE_SUFFIX="Release"
 RECIPE_BOOK="${RUN_DIR}/recipe_book.conf"
 
-# === Load version from version.properties (fallback: dev) ===
+# --- Load version from version.properties (fallback: dev) ---
 VERSION_FILE="${RUN_DIR}/version.properties"
 BAKE_VERSION="dev"
 if [[ -f "$VERSION_FILE" ]]; then
@@ -61,7 +62,7 @@ if [[ $# -lt 1 ]]; then
 fi
 BRANCH_OR_TAG="$1"
 
-# === Determine First Run ===
+# --- Determine if first-run ---
 if [[ ! -f "$BAKE_INIT" ]]; then
     FIRST_RUN=true
 else
@@ -81,9 +82,11 @@ EOF
     # System setup (first run)
     sudo apt update
     sudo apt dist-upgrade -y
-    sudo apt-get install -y git curl build-essential libtool autotools-dev automake pkg-config \
-        python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
-        libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip
+	sudo apt-get install -y \
+		git curl build-essential libtool autotools-dev automake pkg-config python3 bsdmainutils cmake \
+		libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev libxrender-dev libxft-dev \
+		libxrandr-dev libffi-dev g++-aarch64-linux-gnu g++-arm-linux-gnueabihf binutils-aarch64-linux-gnu \
+		binutils-arm-linux-gnueabihf binutils-i686-linux-gnu zip unzip
 else
     # Update config file on subsequent runs
     sudo tee "$BAKE_INIT" > /dev/null <<EOF
@@ -94,12 +97,14 @@ EOF
     log "Bake version & Run_Dir has been updated"
     # System setup (subsequent runs)
     sudo apt update
-    sudo apt-get install -y git curl build-essential libtool autotools-dev automake pkg-config \
-        python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
-        libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip
+	sudo apt-get install -y \
+		git curl build-essential libtool autotools-dev automake pkg-config python3 bsdmainutils cmake \
+		libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev libxrender-dev libxft-dev \
+		libxrandr-dev libffi-dev g++-aarch64-linux-gnu g++-arm-linux-gnueabihf binutils-aarch64-linux-gnu \
+		binutils-arm-linux-gnueabihf binutils-i686-linux-gnu zip unzip
 fi
 
-# === Python 3.10.17 ===
+# --- Install Python 3.10.17 As altinstall ---
 PYTHON_SRC="/usr/src/Python-3.10.17"
 if [ ! -d "$PYTHON_SRC" ]; then
     log "Installing Python 3.10.17..."
@@ -121,12 +126,11 @@ START_EPOCH="$(date +%s)"
 START_HUMAN="$(date +"%Y-%m-%d %H:%M:%S %Z")"
 log "Commercial Bake Start: ${START_HUMAN}"
 
-# === Temp Export for flaky depends on v4.1.0.0 ===
+# --- Temp FALLBACK for flaky depends in v4.1.0.0 ---
 if [[ "$BRANCH_OR_TAG" == "v4.1.0.0" ]]; then
     export FALLBACK_DOWNLOAD_PATH="https://bitoreum.cc/depends/"
     log "Applied fallback depends download path for tag v4.1.0.0"
 fi
-# End Export Fallback ===
 
 # --- Default recipe book (safe under set -e) ---
 _DEFAULT_RECIPE_BOOK="$(cat <<'CONF'
@@ -139,16 +143,13 @@ Oracle Ampere ARM,n,QT=n
 Windows 64-bit,y,QT=y
 CONF
 )"
-
 write_default_recipe_book() {
   log "Writing default recipe_book.conf -> ${RECIPE_BOOK}"
   printf '%s\n' "$_DEFAULT_RECIPE_BOOK" > "${RECIPE_BOOK}"
 }
-
 valid_recipe_line() {
   [[ "$1" =~ ^[^,]+,(y|n),QT=(y|n)$ ]]
 }
-
 ensure_recipe_ok() {
   if [[ ! -f "$RECIPE_BOOK" ]]; then
     log "recipe_book.conf not found. Creating default."
@@ -166,7 +167,7 @@ ensure_recipe_ok() {
   fi
 }
 
-# --- Map friendly target ---
+# --- Map HOST to user-friendly target name ---
 map_target() {
   case "$1" in
     "Linux 64-bit")        echo "x86_64-pc-linux-gnu false false false";;
@@ -232,7 +233,7 @@ arch_type_label() {
   fi
 }
 
-# --- Ensure Windows toolchain when needed (runs once if needed) ---
+# --- Ensure Windows toolchain when needed ---
 ensure_windows_toolchain() {
   log "Ensuring MinGW-w64 toolchain for Windows target..."
   sudo apt-get update -y
@@ -241,32 +242,29 @@ ensure_windows_toolchain() {
   sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix || true
 }
 
-# --- Build a single target (Release-only) ---
+# --- Build a single target ---
 build_target() {
   local friendly="$1" host="$2" qt="$3" is_pi="$4" is_amp="$5" is_win="$6"
   log "---- Building target: ${friendly} | HOST=${host} | QT=${qt} ----"
 
-  # Depends clean & rebuild
+# --- Depends clean & rebuild ---
   pushd "$DEPENDSDIR" >/dev/null
   make clean || true
   make distclean || true
   make -j"$(nproc)" HOST="$host"
   popd >/dev/null
 
-  # Main clean, autogen, configure, build
+# --- Main application clean, autogen, configure, build ---
   pushd "$REPO_ROOT" >/dev/null
   make clean || true
   make distclean || true
-
   ./autogen.sh
-
   local cfg_flags=""
   [[ "${qt,,}" == "n" ]] && cfg_flags+=" --with-gui=no"
-
   ./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
   make -j"$(nproc)"
 
-  # Determine binaries to package
+# --- Determine binaries to package ---
   local binfiles=()
   if [[ "$is_win" == "true" ]]; then
     if [[ "${qt,,}" == "y" ]]; then
@@ -292,12 +290,23 @@ build_target() {
     cp "src/${b}" "$out_dir/"
   done
 
-  # Strip
-  local strip_tool="strip"
-  [[ "$is_win" == "true" ]] && strip_tool="x86_64-w64-mingw32-strip"
-  $strip_tool "$out_dir"/* || err "strip failed (continuing)"
+# --- $HOST aware (specific) Strip ---
+case "$host" in
+  x86_64-w64-mingw32) strip_tool="x86_64-w64-mingw32-strip" ;;
+  arm-linux-gnueabihf) strip_tool="arm-linux-gnueabihf-strip" ;;
+  aarch64-linux-gnu)   strip_tool="aarch64-linux-gnu-strip" ;;
+  i686-pc-linux-gnu)   strip_tool="i686-linux-gnu-strip" ;;
+  *)                   strip_tool="strip" ;;
+esac
+# ---Fallback if the cross-strip isn't available ---
+if ! command -v "$strip_tool" >/dev/null 2>&1; then
+  err "strip tool '$strip_tool' not found; using fallback 'strip'"
+  strip_tool="strip"
+fi
 
-  # Checksums inside tree (per-build)
+"$strip_tool" "$out_dir"/* || err "strip failed (continuing)"
+
+# --- Checksums inside tree (per-build) ---
   local checksum_file="${out_dir}/checksums-${VERSION}.txt"
   : > "$checksum_file"
   echo "sha256:" >> "$checksum_file"
@@ -305,7 +314,7 @@ build_target() {
   echo "openssl-sha256:" >> "$checksum_file"
   (cd "$BUILD_BASE" && find "$bin_subdir" -type f -exec sha256sum {} \;) >> "$checksum_file" 2>/dev/null || true
 
-  # Archive name and compress
+# --- Archive name and compress ---
   local os_label arch_label archive_name
   os_label="$(detect_os_label)"
   arch_label="$(arch_type_label "$host" "$is_pi" "$is_amp" "$is_win")"
@@ -319,13 +328,12 @@ build_target() {
   fi
 
   mv -f "${COMPRESS_DIR}/${archive_name}" "$SPECIAL_DELIVERY/"
-  log "Built & moved: ${SPECIAL_DELIVERY}/${archive_name}"
-
+  log "Baked & packaged to: ${SPECIAL_DELIVERY}/${archive_name}"
   popd >/dev/null
   return 0
 }
 
-# --- Main flow ---
+# --- Main script flow ---
 log "Bakery batch start (branch/tag: ${BRANCH_OR_TAG})"
 ensure_recipe_ok
 mkdir -p "$SPECIAL_DELIVERY" "$COMPRESS_DIR" "$BUILD_BASE"
@@ -338,12 +346,12 @@ else
   log "No build.properties found; using fallback version: ${VERSION}"
 fi
 
-# Install Windows toolchain once if any Windows target is enabled
+# --- Install Windows toolchain once if any Windows target is enabled ---
 if grep -E "^Windows 64-bit,y,QT=" "$RECIPE_BOOK" >/dev/null 2>&1; then
   ensure_windows_toolchain
 fi
 
-# Build loop
+# --- Build loop ---
 while IFS= read -r line || [[ -n "$line" ]]; do
   [[ -z "$line" ]] && continue
   IFS=',' read -r friendly enabled qtfield <<< "$line"
@@ -360,7 +368,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   }
 done < "$RECIPE_BOOK"
 
-# Final global checksums (for everything in special-delivery)
+# --- Final global checksums (for everything in special-delivery) ---
 GLOBAL_SUM="${SPECIAL_DELIVERY}/checksums-${VERSION}.txt"
 : > "$GLOBAL_SUM"
 shopt -s nullglob
@@ -378,5 +386,4 @@ RUNTIME=$((END_EPOCH-START_EPOCH))
 printf -v RUNTIME_HMS '%02d:%02d:%02d' $((RUNTIME/3600)) $(((RUNTIME%3600)/60)) $((RUNTIME%60))
 log "Commercial Bake End:   ${END_HUMAN}"
 log "Total Kitcehn Runtime: ${RUNTIME_HMS}"
-
 log "Bakery batch complete. Artifacts in ${SPECIAL_DELIVERY}"
