@@ -265,7 +265,22 @@ build_target() {
   ./autogen.sh
   local cfg_flags=""
   [[ "${qt,,}" == "n" ]] && cfg_flags+=" --with-gui=no"
-  ./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
+  
+  
+# --- Configure (treats for Debian or Ubuntu ---
+  if [[ -r /etc/os-release ]]; then . /etc/os-release; fi
+  if [[ "${ID:-}" == "debian" ]]; then
+	cs="${DEPENDSDIR}/${host}/share/config.site"
+	if [[ -f "$cs" ]]; then
+      log "Debian detected; using CONFIG_SITE=$cs"
+      CONFIG_SITE="$cs" ./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
+	else
+      err "Debian detected but $cs not found; falling back to plain configure"
+      ./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
+	fi
+  else
+	./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
+  fi
   make -j"$(nproc)"
 
 # --- Determine binaries to package ---
