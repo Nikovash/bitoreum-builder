@@ -10,7 +10,7 @@ This is an extremely streamlined batch maker. Basic usage:
 ./bakery.sh v4.1.0.0
 ```
 
-This script will run until it complets or encounters a cross-compile errors, at which point it exits.
+This script will run until it completes or encounters a cross-compilation error, at which point it should exit...
 
 ## The Recipe Book
 
