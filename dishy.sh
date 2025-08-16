@@ -4,6 +4,8 @@ set -Eeuo pipefail
 # === Variables ===
 RUN_DIR="$(pwd -P)"
 BITOREUM_DIR="$HOME/bitoreum-build"
+SPECIAL_DELIVERY_DIR="$RUN_DIR/special-delivery"
+
 BAKE_BREAD_LOG="$RUN_DIR/bake_bread.log"
 BAKE_CREAMPIE_LOG="$RUN_DIR/bake_creampie.log"
 BAKERY_LOG="$RUN_DIR/bakery.log"
@@ -27,6 +29,19 @@ if [[ -d "$BITOREUM_DIR" ]]; then
   fi
 else
   log "No build directory to remove: $BITOREUM_DIR"
+fi
+
+# Remove special-delivery under the current RUN_DIR (safety: exact path match)
+if [[ -d "$SPECIAL_DELIVERY_DIR" ]]; then
+  if [[ "$SPECIAL_DELIVERY_DIR" == "$RUN_DIR/special-delivery" ]]; then
+    log "Removing special-delivery directory: $SPECIAL_DELIVERY_DIR"
+    rm -rf -- "$SPECIAL_DELIVERY_DIR"
+  else
+    err "Refusing to remove unexpected path: $SPECIAL_DELIVERY_DIR"
+    exit 1
+  fi
+else
+  log "No special-delivery directory to remove: $SPECIAL_DELIVERY_DIR"
 fi
 
 # Remove logs if present
