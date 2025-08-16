@@ -56,8 +56,12 @@ if [[ -f "$VERSION_FILE" ]]; then
 fi
 BAKE_INIT="/opt/bake/bake.log"
 
+# --- Require explicit branch/tag; print to console AND log ---
 if [[ $# -lt 1 ]]; then
-  err "Usage: $0 <branch_or_tag>"
+  msg="Usage: $0 <branch_or_tag>"
+  # console (stderr) in red
+  echo -e "\033[1;31m[ERROR] $msg\033[0m" >&2
+  echo -e "\033[1;31m[ERROR] $msg\033[0m" >> "$LOG_FILE"
   exit 1
 fi
 BRANCH_OR_TAG="$1"
