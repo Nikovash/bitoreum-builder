@@ -24,8 +24,17 @@ fi
 # Fresh log file after cleanup
 : > "$LOG_FILE"
 
-log()  { printf '[INFO] %s\n'  "$*" >> "$LOG_FILE"; }
-err()  { printf '[ERROR] %s\n' "$*" >> "$LOG_FILE"; }
+log() {
+  echo -e "\033[1;32m[INFO] $*\033[0m" | tee -a "$LOG_FILE" >/dev/null
+}
+err() {
+  echo -e "\033[1;31m[ERROR] $*\033[0m" | tee -a "$LOG_FILE" >/dev/null
+}
+
+# --- Timestamps (start) ---
+START_EPOCH="$(date +%s)"
+START_HUMAN="$(date +"%Y-%m-%d %H:%M:%S %Z")"
+log "Commercial Bake Start: ${START_HUMAN}"
 
 REPO_PARENT="$HOME/bitoreum-build"
 REPO_ROOT="$REPO_PARENT/bitoreum"
@@ -361,5 +370,13 @@ for f in "${SPECIAL_DELIVERY}"/*.tar.gz "${SPECIAL_DELIVERY}"/*.zip; do
   echo "openssl-sha256: $(sha256sum "$f")" >> "$GLOBAL_SUM"
 done
 log "Wrote global checksums -> ${GLOBAL_SUM}"
+
+# --- Timestamps (end) ---
+END_EPOCH="$(date +%s)"
+END_HUMAN="$(date +"%Y-%m-%d %H:%M:%S %Z")"
+RUNTIME=$((END_EPOCH-START_EPOCH))
+printf -v RUNTIME_HMS '%02d:%02d:%02d' $((RUNTIME/3600)) $(((RUNTIME%3600)/60)) $((RUNTIME%60))
+log "Commercial Bake End:   ${END_HUMAN}"
+log "Total Kitcehn Runtime: ${RUNTIME_HMS}"
 
 log "Bakery batch complete. Artifacts in ${SPECIAL_DELIVERY}"
