@@ -2,14 +2,14 @@
 set -euo pipefail
 
 # ===========================
-# Bitoreum Bakery (silent to console)
+# Bitoreum Bakery (console shows command output)
 # - Explicit branch/tag arg required
 # - Uses recipe_book.conf (optional custom build matrix)
 # - One-time repo clone/update
 # - Cleans depends & main between builds
 # - Release-only builds (stripped)
 # - Artifacts in ~/special-delivery
-# - Logs everything to bakery.log (no stdout/stderr spam)
+# - bakery.log: only [INFO]/[ERROR] entries (no command output)
 # ===========================
 
 # Where we RUN the script from (not where it's stored)
@@ -18,17 +18,17 @@ LOG_FILE="${RUN_DIR}/bakery.log"
 
 # Run dishy immediately (best-effort, before creating bakery.log)
 if [[ -x "${RUN_DIR}/dishy.sh" ]]; then
-  "${RUN_DIR}/dishy.sh" >/dev/null 2>&1 || true
+  "${RUN_DIR}/dishy.sh" || true
 fi
 
 # Fresh log file after cleanup
 : > "$LOG_FILE"
 
 log() {
-  echo -e "\033[1;32m[INFO] $*\033[0m" | tee -a "$LOG_FILE" >/dev/null
+  echo -e "\033[1;32m[INFO] $*\033[0m" >> "$LOG_FILE"
 }
 err() {
-  echo -e "\033[1;31m[ERROR] $*\033[0m" | tee -a "$LOG_FILE" >/dev/null
+  echo -e "\033[1;31m[ERROR] $*\033[0m" >> "$LOG_FILE"
 }
 
 # --- Timestamps (start) ---
@@ -76,32 +76,32 @@ log "First run: $FIRST_RUN"
 
 if [[ "$FIRST_RUN" == true ]]; then
     log "Performing first run setup..."
-    sudo mkdir -p /opt/bake >>"$LOG_FILE" 2>&1
-    sudo tee "$BAKE_INIT" > /dev/null >>"$LOG_FILE" 2>&1 <<EOF
+    sudo mkdir -p /opt/bake
+    sudo tee "$BAKE_INIT" > /dev/null <<EOF
 # Bake configuration
 BAKE_VERSION=$BAKE_VERSION
 SCRIPT_INSTALL=${RUN_DIR}
 EOF
     log "Configuration file created at $BAKE_INIT"
     # System setup (first run)
-    sudo apt update >>"$LOG_FILE" 2>&1
-    sudo apt dist-upgrade -y >>"$LOG_FILE" 2>&1
+    sudo apt update
+    sudo apt dist-upgrade -y
     sudo apt-get install -y git curl build-essential libtool autotools-dev automake pkg-config \
         python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
-        libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip >>"$LOG_FILE" 2>&1
+        libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip
 else
     # Update config file on subsequent runs
-    sudo tee "$BAKE_INIT" > /dev/null >>"$LOG_FILE" 2>&1 <<EOF
+    sudo tee "$BAKE_INIT" > /dev/null <<EOF
 # Bake configuration
 BAKE_VERSION=$BAKE_VERSION
 SCRIPT_INSTALL=$RUN_DIR
 EOF
     log "Bake version & Run_Dir has been updated"
     # System setup (subsequent runs)
-    sudo apt update >>"$LOG_FILE" 2>&1
+    sudo apt update
     sudo apt-get install -y git curl build-essential libtool autotools-dev automake pkg-config \
         python3 bsdmainutils cmake libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev \
-        libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip >>"$LOG_FILE" 2>&1
+        libxrender-dev libxft-dev libxrandr-dev libffi-dev g++-aarch64-linux-gnu zip unzip
 fi
 
 # === Python 3.10.17 ===
@@ -109,12 +109,12 @@ PYTHON_SRC="/usr/src/Python-3.10.17"
 if [ ! -d "$PYTHON_SRC" ]; then
     log "Installing Python 3.10.17..."
     cd /usr/src
-    sudo wget https://www.python.org/ftp/python/3.10.17/Python-3.10.17.tgz >>"$LOG_FILE" 2>&1
-    sudo tar -xzf Python-3.10.17.tgz >>"$LOG_FILE" 2>&1
+    sudo wget https://www.python.org/ftp/python/3.10.17/Python-3.10.17.tgz
+    sudo tar -xzf Python-3.10.17.tgz
     cd Python-3.10.17
-    sudo ./configure --enable-optimizations >>"$LOG_FILE" 2>&1
-    sudo make -j"$(nproc)" >>"$LOG_FILE" 2>&1
-    sudo make altinstall >>"$LOG_FILE" 2>&1
+    sudo ./configure --enable-optimizations
+    sudo make -j"$(nproc)"
+    sudo make altinstall
     log "Python 3.10.17 successfully installed"
 else
     log "Python 3.10.17 already installed."
@@ -185,15 +185,15 @@ prepare_repo() {
   mkdir -p "$REPO_PARENT"
   if [[ -d "$REPO_ROOT/.git" ]]; then
     log "Repo exists. Updating and checking out $BRANCH_OR_TAG..."
-    git -C "$REPO_ROOT" fetch --all --tags >>"$LOG_FILE" 2>&1
-    git -C "$REPO_ROOT" checkout -f "$BRANCH_OR_TAG" >>"$LOG_FILE" 2>&1
-    git -C "$REPO_ROOT" pull --rebase >>"$LOG_FILE" 2>&1 || true
+    git -C "$REPO_ROOT" fetch --all --tags
+    git -C "$REPO_ROOT" checkout -f "$BRANCH_OR_TAG"
+    git -C "$REPO_ROOT" pull --rebase || true
   else
     log "Cloning branch/tag $BRANCH_OR_TAG..."
-    if ! git clone -b "$BRANCH_OR_TAG" https://github.com/Nikovash/bitoreum "$REPO_ROOT" >>"$LOG_FILE" 2>&1; then
+    if ! git clone -b "$BRANCH_OR_TAG" https://github.com/Nikovash/bitoreum "$REPO_ROOT"; then
       log "Branch/tag not found, cloning default then checking out $BRANCH_OR_TAG"
-      git clone https://github.com/Nikovash/bitoreum "$REPO_ROOT" >>"$LOG_FILE" 2>&1
-      git -C "$REPO_ROOT" checkout -f "$BRANCH_OR_TAG" >>"$LOG_FILE" 2>&1
+      git clone https://github.com/Nikovash/bitoreum "$REPO_ROOT"
+      git -C "$REPO_ROOT" checkout -f "$BRANCH_OR_TAG"
     fi
   fi
 }
@@ -235,10 +235,10 @@ arch_type_label() {
 # --- Ensure Windows toolchain when needed (runs once if needed) ---
 ensure_windows_toolchain() {
   log "Ensuring MinGW-w64 toolchain for Windows target..."
-  sudo apt-get update -y >>"$LOG_FILE" 2>&1
-  sudo apt-get install -y g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 binutils-mingw-w64-x86-64 nsis >>"$LOG_FILE" 2>&1
-  sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix >>"$LOG_FILE" 2>&1 || true
-  sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix >>"$LOG_FILE" 2>&1 || true
+  sudo apt-get update -y
+  sudo apt-get install -y g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 binutils-mingw-w64-x86-64 nsis
+  sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix || true
+  sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix || true
 }
 
 # --- Build a single target (Release-only) ---
@@ -248,23 +248,23 @@ build_target() {
 
   # Depends clean & rebuild
   pushd "$DEPENDSDIR" >/dev/null
-  make clean >>"$LOG_FILE" 2>&1 || true
-  make distclean >>"$LOG_FILE" 2>&1 || true
-  make -j"$(nproc)" HOST="$host" >>"$LOG_FILE" 2>&1
+  make clean || true
+  make distclean || true
+  make -j"$(nproc)" HOST="$host"
   popd >/dev/null
 
   # Main clean, autogen, configure, build
   pushd "$REPO_ROOT" >/dev/null
-  make clean >>"$LOG_FILE" 2>&1 || true
-  make distclean >>"$LOG_FILE" 2>&1 || true
+  make clean || true
+  make distclean || true
 
-  ./autogen.sh >>"$LOG_FILE" 2>&1
+  ./autogen.sh
 
   local cfg_flags=""
   [[ "${qt,,}" == "n" ]] && cfg_flags+=" --with-gui=no"
 
-  ./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags} >>"$LOG_FILE" 2>&1
-  make -j"$(nproc)" >>"$LOG_FILE" 2>&1
+  ./configure --prefix="${DEPENDSDIR}/${host}" ${cfg_flags}
+  make -j"$(nproc)"
 
   # Determine binaries to package
   local binfiles=()
@@ -295,7 +295,7 @@ build_target() {
   # Strip
   local strip_tool="strip"
   [[ "$is_win" == "true" ]] && strip_tool="x86_64-w64-mingw32-strip"
-  $strip_tool "$out_dir"/* >>"$LOG_FILE" 2>&1 || err "strip failed (continuing)"
+  $strip_tool "$out_dir"/* || err "strip failed (continuing)"
 
   # Checksums inside tree (per-build)
   local checksum_file="${out_dir}/checksums-${VERSION}.txt"
@@ -312,7 +312,7 @@ build_target() {
 
   if [[ "$is_win" == "true" ]]; then
     archive_name="${COIN_NAME}-Generic-${arch_label}-${RELEASE_SUFFIX}-${VERSION}.zip"
-    (cd "$BUILD_BASE" && zip -r "${COMPRESS_DIR}/${archive_name}" "$bin_subdir") >>"$LOG_FILE" 2>&1
+    (cd "$BUILD_BASE" && zip -r "${COMPRESS_DIR}/${archive_name}" "$bin_subdir")
   else
     archive_name="${COIN_NAME}-${os_label}_${arch_label}-${RELEASE_SUFFIX}-${VERSION}.tar.gz"
     (cd "$BUILD_BASE" && tar -cf - "$bin_subdir" | gzip -9 > "${COMPRESS_DIR}/${archive_name}")
