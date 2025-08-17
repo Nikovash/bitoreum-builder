@@ -78,10 +78,12 @@ CNTL+x
 Make the script executable and make it system wide executable:
 
 ```bash
-chmod +x upload
 sudo cp upload /usr/bin
 ```
-
+script should be executable on default, but if not simplly run
+```bash
+sudo chmod +x /usr/bin/upload
+```
 Then run:
 
 ```bash

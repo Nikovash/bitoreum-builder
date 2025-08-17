@@ -30,6 +30,13 @@ Launch the build process:
 ./bake.sh
 ```
 
+On all runs, the version and location of the script are written to a safe posstion to see what version of the script(s) were last run. You can view this by:
+
+```bash
+cat /opt/bake/bake.log
+```
+
+
 The script will prompt you with several options:
 
 ---
@@ -41,11 +48,12 @@ The script will prompt you with several options:
 You will be asked:
 
 ```
-Clone from 'main' or specify a branch name (case-sensitive)? [main/branch-name]:
+Clone from a specific a branch or  tagname (case-sensitive) [branch OR tag-name]:
 ```
-
-- Type `main` for the default branch.
-- Or enter a valid branch name (case-sensitive) to use a specific fork branch.
+- Default is `main` branch
+- Type any vaild branch name EXAMPLE `dev`
+- Or enter any valid branch name (case-sensitive) to use a specific branch
+- Tagas are also now vaild EXAMPLE `v4.1.0.0`
 
 ---
 
@@ -62,15 +70,14 @@ Clone from 'main' or specify a branch name (case-sensitive)? [main/branch-name]:
 8) Cancel and exit
 ```
 
-- Choose the number corresponding to your platform.
-- Option 8 will exit the script.
+- Choose the number corresponding to your platform
+- Option 8 will exit the script
 ---
 
 ### 3 | Determine if you want QT (GUI) Wallet
 ```
 Y|n prompt
 ```
-
 
 ## 🛠️ What the Script Does
 
@@ -95,7 +102,7 @@ You’ll find the build output and compressed files in:
 ~/bitoreum-build/compressed/
 ```
 
-Each `.tar.gz` (`*.zip` for Windows builds) archive will contain:
+Each `.tar.gz` or `*.zip` (for Windows builds) archive will contain:
 
 - Compiled binaries
 - Matching `checksums-<version>.txt` file
@@ -104,7 +111,7 @@ Each `.tar.gz` (`*.zip` for Windows builds) archive will contain:
 
 ## 🧹 Cleaning Up
 
-After the build, once you have stored the files you want safely you can just erase the bitoreum-build folder by utilizing your very own dishy.sh
+After the build, once you have stored the files you want safely you can just erase the bitoreum-build folder by utilizing your very own `dishy.sh`
 
 ```bash
 $HOME/bitoreum-builder/./dishy.sh
