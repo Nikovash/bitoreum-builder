@@ -2,28 +2,48 @@
 set -euo pipefail
 
 # ===========================
-# Bitoreum Bakery (console shows command output)
-# - Explicit branch/tag arg required
+# Bitoreum Bakery (Batch bake.sh)
+# - Explicit branch/tag arg required at launch
 # - Uses recipe_book.conf (optional custom build matrix)
 # - One-time repo clone/update
-# - Cleans depends & main between builds
+# - Cleans depends & main between bakes
 # - Release-only builds (stripped)
-# - Artifacts in ./special-delivery (under RUN_DIR)
-# - bakery.log: only [INFO]/[ERROR] entries (no command output)
+# - Artifacts in folder special-delivery
+# - bakery.log: only [INFO]/[ERROR] entries - Less chatter mode
 # ===========================
 
 # --- Where we RUN the script from ---
 RUN_DIR="$(pwd -P)"
 LOG_FILE="${RUN_DIR}/bakery.log"
 
-# --- Run dishy.sh to make sure the kitchen is ready for a big build ---
+# --- Ensure dishy.sh exists; try to fetch if missing ---
 if [[ -x "${RUN_DIR}/dishy.sh" ]]; then
   "${RUN_DIR}/dishy.sh" || true
+else
+  fetched=""
+  if command -v curl >/dev/null 2>&1; then
+    for ref in main master; do
+      curl -fsSL "https://raw.githubusercontent.com/Nikovash/bitoreum-builder/${ref}/dishy.sh" \
+        -o "${RUN_DIR}/dishy.sh" && fetched="yes" && break || true
+    done
+  elif command -v wget >/dev/null 2>&1; then
+    for ref in main master; do
+      wget -qO "${RUN_DIR}/dishy.sh" \
+        "https://raw.githubusercontent.com/Nikovash/bitoreum-builder/${ref}/dishy.sh" && fetched="yes" && break || true
+    done
+  fi
+
+  if [[ "${fetched:-}" == "yes" && -s "${RUN_DIR}/dishy.sh" ]]; then
+    chmod +x "${RUN_DIR}/dishy.sh"
+    "${RUN_DIR}/dishy.sh" || true
+  else
+    echo -e "\033[1;31m[ERROR] Required employee 'dishy.sh' did not show up for work (not found locally) and could not be downloaded from GitHub (Nikovash/bitoreum-builder).\033[0m" >&2
+    echo -e "\033[1;31m[ERROR] Aborting to avoid building on a dirty workspace. Place 'dishy.sh' next to bakery.sh or ensure curl/wget can fetch it.\033[0m" >&2
+    exit 1
+  fi
 fi
 
-# --- Fresh log file after cleanup ---
-: > "$LOG_FILE"
-
+# --- Facny coloring and treatment for log ---
 log() {
   echo -e "\033[1;32m[INFO] $*\033[0m" >> "$LOG_FILE"
 }
@@ -31,7 +51,7 @@ err() {
   echo -e "\033[1;31m[ERROR] $*\033[0m" >> "$LOG_FILE"
 }
 
-# --- Timestamps (start) ---
+# --- bakery.sh Start Time ---
 START_EPOCH="$(date +%s)"
 START_HUMAN="$(date +"%Y-%m-%d %H:%M:%S %Z")"
 log "Commercial Bake Start: ${START_HUMAN}"
