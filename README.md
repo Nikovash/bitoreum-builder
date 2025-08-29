@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="BB_logo.png" alt="Project Logo" width="200"/>
+  <img src="assets/BB_logo.png" alt="Project Logo" width="200"/>
 </p>
 
 # 🛠️ Bitoreum Builder
@@ -7,7 +7,7 @@
 A fully automated build script for compiling [Crystal Bitoreum](https://github.com/Nikovash/bitoreum) or other forks.  
 Supports multiple target architectures and generates stripped, not-stripped, and debug builds, each with full checksums and compressed archives.
 
-**Version:** 1.1
+**Version:** 1.9
 
 ---
 

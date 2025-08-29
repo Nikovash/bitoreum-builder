@@ -16,33 +16,6 @@ set -euo pipefail
 RUN_DIR="$(pwd -P)"
 LOG_FILE="${RUN_DIR}/bakery.log"
 
-# --- Ensure dishy.sh exists; try to fetch if missing ---
-if [[ -x "${RUN_DIR}/dishy.sh" ]]; then
-  "${RUN_DIR}/dishy.sh" || true
-else
-  fetched=""
-  if command -v curl >/dev/null 2>&1; then
-    for ref in main master; do
-      curl -fsSL "https://raw.githubusercontent.com/Nikovash/bitoreum-builder/${ref}/dishy.sh" \
-        -o "${RUN_DIR}/dishy.sh" && fetched="yes" && break || true
-    done
-  elif command -v wget >/dev/null 2>&1; then
-    for ref in main master; do
-      wget -qO "${RUN_DIR}/dishy.sh" \
-        "https://raw.githubusercontent.com/Nikovash/bitoreum-builder/${ref}/dishy.sh" && fetched="yes" && break || true
-    done
-  fi
-
-  if [[ "${fetched:-}" == "yes" && -s "${RUN_DIR}/dishy.sh" ]]; then
-    chmod +x "${RUN_DIR}/dishy.sh"
-    "${RUN_DIR}/dishy.sh" || true
-  else
-    echo -e "\033[1;31m[ERROR] Required employee 'dishy.sh' did not show up for work (not found locally) and could not be downloaded from GitHub (Nikovash/bitoreum-builder).\033[0m" >&2
-    echo -e "\033[1;31m[ERROR] Aborting to avoid building on a dirty workspace. Place 'dishy.sh' next to bakery.sh or ensure curl/wget can fetch it.\033[0m" >&2
-    exit 1
-  fi
-fi
-
 # --- Fancy coloring and treatment for log ---
 log()  { echo -e "\033[1;32m[INFO]  $*\033[0m" >> "$LOG_FILE"; }
 err()  { echo -e "\033[1;31m[ERROR] $*\033[0m" >> "$LOG_FILE"; }
@@ -67,6 +40,32 @@ if [[ $# -ge 2 ]]; then
     REPO_URL="$3"
   else
     REPO_URL="https://github.com/Nikovash/${COIN_NAME}"
+  fi
+fi
+
+# --- Ensure dishy.sh exists; try to fetch if missing (now we have $COIN_NAME) ---
+if [[ -x "${RUN_DIR}/dishy.sh" ]]; then
+  "${RUN_DIR}/dishy.sh" "$COIN_NAME" || true
+else
+  fetched=""
+  if command -v curl >/dev/null 2>&1; then
+    for ref in main master; do
+      curl -fsSL "https://raw.githubusercontent.com/Nikovash/bitoreum-builder/${ref}/dishy.sh" \
+        -o "${RUN_DIR}/dishy.sh" && fetched="yes" && break || true
+    done
+  elif command -v wget >/dev/null 2>&1; then
+    for ref in main master; do
+      wget -qO "${RUN_DIR}/dishy.sh" \
+        "https://raw.githubusercontent.com/Nikovash/bitoreum-builder/${ref}/dishy.sh" && fetched="yes" && break || true
+    done
+  fi
+  if [[ "${fetched:-}" == "yes" && -s "${RUN_DIR}/dishy.sh" ]]; then
+    chmod +x "${RUN_DIR}/dishy.sh"
+    "${RUN_DIR}/dishy.sh" "$COIN_NAME" || true
+  else
+    echo -e "\033[1;31m[ERROR] Required employee 'dishy.sh' did not show up...\033[0m" >&2
+    echo -e "\033[1;31m[ERROR] Aborting...\033[0m" >&2
+    exit 1
   fi
 fi
 

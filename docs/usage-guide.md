@@ -9,8 +9,8 @@ This document walks you through using the `bake.sh` script to compile Bitoreum o
 Before running the script:
 
 ```bash
-git clone https://github.com/Nikovash/bitoreum-builder.git
-cd bitoreum-builder
+git clone https://github.com/Nikovash/bake.git
+cd bake
 (chmod +x bake.sh) // Optional, starting in version 1.0 all scripts are deployed with executable flags
 ```
 
@@ -36,7 +36,6 @@ On all runs, the version and location of the script are written to a safe possti
 cat /opt/bake/bake.log
 ```
 
-
 The script will prompt you with several options:
 
 ---
@@ -48,12 +47,12 @@ The script will prompt you with several options:
 You will be asked:
 
 ```
-Clone from a specific a branch or  tagname (case-sensitive) [branch OR tag-name]:
+Clone from a specific a branch or  tag name (case-sensitive) [branch OR tag-name]:
 ```
 - Default is `main` branch
-- Type any vaild branch name EXAMPLE `dev`
+- Type any valid branch name EXAMPLE `dev`
 - Or enter any valid branch name (case-sensitive) to use a specific branch
-- Tagas are also now vaild EXAMPLE `v4.1.0.0`
+- Tags are also now valid EXAMPLE `v4.1.0.0`
 
 ---
 
@@ -114,9 +113,9 @@ Each `.tar.gz` or `*.zip` (for Windows builds) archive will contain:
 After the build, once you have stored the files you want safely you can just erase the bitoreum-build folder by utilizing your very own `dishy.sh`
 
 ```bash
-$HOME/bitoreum-builder/./dishy.sh
+$HOME/bake/./dishy.sh
 ```
-## Command above is destructive so make sure you have moved the file(s) you want ouf of the `bitoreum-build` folder FIRST!
+## Command above is destructive so make sure you have moved the file(s) you want out of the `bake` folder FIRST!
 ---
 
 > Next: [Advanced Options](advanced-options.md)

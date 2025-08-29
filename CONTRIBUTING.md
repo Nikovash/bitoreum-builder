@@ -18,8 +18,8 @@ Thank you for considering a contribution to Bitoreum Builder! We welcome all for
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/Nikovash/bitoreum-builder.git
-   cd bitoreum-builder
+   git clone https://github.com/Nikovash/bake.git
+   cd bake
    ```
    
 2. Make your changes in a new branch:
@@ -31,7 +31,7 @@ Thank you for considering a contribution to Bitoreum Builder! We welcome all for
 3. Stage and commit your changes:
 
   ```bash
-  git add .
+  git add <filename>
   git commit -m "Add feature/fix: [short description]"
   ```
 4. Push your branch and open a Pull Request:

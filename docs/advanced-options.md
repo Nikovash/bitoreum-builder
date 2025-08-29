@@ -98,7 +98,7 @@ Ensure the script didn't fail during `make` process, thse logs are found in `~/b
 - `config.log`
 - `config_debug.log`
 
-There are now script specific log(s) now too that are found in the `bitoreum-builder`
+There are now script specific log(s) now too that are found in the `bake`
 - `bake_bread.log` (bake.sh)
 - `bake_creampie.log` (refire.sh)
 - `dishy.sh` only outputs on the screen what he is doing and doesn't log anything, because dishy's just do...
@@ -116,5 +116,5 @@ And that you're running in a directory you own (like `~/bitoreum-build`).
 ---
 
 Still stuck?  
-Open an issue on [GitHub](https://github.com/Nikovash/bitoreum-builder/issues).
+Open an issue on [GitHub](https://github.com/Nikovash/bake/issues).
 

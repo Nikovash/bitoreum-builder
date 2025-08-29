@@ -19,7 +19,7 @@ A: The script supports Debian fork Linux Distributions with the following archit
 - Linux ARM 32-bit	(`arm-linux-gnueabihf`)
 - Linux ARM 64-bit	(`aarch64-linux-gnu`)
 - Raspberry Pi 4+	(`aarch64-linux-gnu`)
-- Ampere			(`aarch64-linux-gnu`)
+- Ampere		(`aarch64-linux-gnu`)
 - Windows 64-bit	(`x86_64-w64-mingw32`) Cross compile
 
 ---
@@ -79,7 +79,7 @@ A:
 
 ### 🔑 Q: Can I build with my own fork?
 
-A: Absolutely. You just need to modify the bake.sh file to add in your own GitHub repository URL. You may also need build dependacies that I do nopt so be away of that!
+A: Absolutely. You just need to modify the bake.sh file to add in your own GitHub repository URL. You may also need build dependancies that I do not so be aware of that!
 
 ---
 
@@ -94,11 +94,11 @@ sha256sum -c checksums-<version>.txt
 
 ### 🧼 Q: How do I clean up old builds?
 
-Within the `bitoreum-builder` folder is a new helper, every good kitchen needs a dishy! This action is destructive, so use with caution!!!
+Within the `bake` folder is a new helper, every good kitchen needs a dishy! This action is destructive, so use with caution!!!
 ```bash
-$HOME/bitoreum-builder/./dishy.sh
+$HOME/bake/./dishy.sh [<coin-name>] # Defaults to bitoreum if no coin is passed
 ```
 ---
 
 Still have questions?  
-Open an issue at: [https://github.com/Nikovash/bitoreum-builder/issues](https://github.com/Nikovash/bitoreum-builder/issues)
+Open an issue at: [https://github.com/Nikovash/bake/issues](https://github.com/Nikovash/bake/issues)

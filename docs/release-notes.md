@@ -38,8 +38,8 @@
 
 # Version 1.1
 - Cleaned up code of weird formatting errors, likely carry-over from copy and paste on Windows
-- Removed most debuging code
-- Corrected Artifact naming for consistancy
+- Removed most debugging code
+- Corrected Artifact naming for consistency
 
 # Version 1.2
 - Production Version
@@ -55,11 +55,17 @@
 # Version 1.8
 - Rolled back code to a time when things worked, at some point we copied old code into new code and broke things previously working
 - Removed Debian code, newer `GCC` blew up on QT so either QT needs to be updated or patched outside the scope of `bake` and `bakery`
-- Improved `dishy.sh` by making the cleaning process more robust and inclusinve of the fact that `bakery.sh` allways calls on its dishy
+- Improved `dishy.sh` by making the cleaning process more robust and inclusive of the fact that `bakery.sh` always calls on its dishy
 - Code cleaning for readability and remove stray text
 - Improved [INFO] and [ERROR] readability for 'less chatty' log(s)
 - Improved `bake.sh` AND `bakery.sh` script logic
 - Updated `bakery.sh` Usage Guide
 - Tuning code to be in line with future goal of this system being multi-coin supported
-- In `bakery.sh` When QT is flagged `n` depends is build with `NO_QT=1` this should improve build times signifigantly
-- On `bakery.sh` run, if `dishy.sh` is not found locally, attmepts to download it from GitHub
+- In `bakery.sh` When QT is flagged `n` depends is build with `NO_QT=1` this should improve build times significantly
+- On `bakery.sh` run, if `dishy.sh` is not found locally, attempts to download it from GitHub
+
+# Version 1.9
+- `bakery.sh` now supports multi-coin building
+- Documents have been updated to reflect new Repository naming
+- `dishy.sh` Usage has changed to accommodate multi-coin usage
+
