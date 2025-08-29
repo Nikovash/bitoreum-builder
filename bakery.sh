@@ -73,6 +73,7 @@ fi
 # --- Variables derived from COIN_NAME (must be after overrides) ---
 REPO_PARENT="$HOME/${COIN_NAME}-build"
 REPO_ROOT="$REPO_PARENT/${COIN_NAME}"
+
 DEPENDSDIR="$REPO_ROOT/depends"
 BUILD_BASE="$REPO_PARENT/build"
 COMPRESS_DIR="$REPO_PARENT/compressed"
@@ -82,7 +83,6 @@ RELEASE_SUFFIX="Release"
 RECIPE_BOOK="${RUN_DIR}/recipe_book.conf"
 
 # --- Load version from version.properties (fallback: dev) ---
-
 VERSION_FILE="${RUN_DIR}/version.properties"
 BAKE_VERSION="dev"
 if [[ -f "$VERSION_FILE" ]]; then
