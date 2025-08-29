@@ -69,3 +69,25 @@
 - Documents have been updated to reflect new Repository naming
 - `dishy.sh` Usage has changed to accommodate multi-coin usage
 
+# Version 1.2
+- Production Version
+- created bakery.sh - the batch release maker
+- Corrected Version Init on first run
+- Added universal script versioning
+- Added Release archive to match Github Runner Actions
+- Added notes on cross compile OS packages
+- `upload` utility is now shipped as executable
+- Updated `upload`'s README.md
+- Added `bakery.sh` usage 
+
+# Version 1.8
+- Rolled back code to a time when things worked, at some point we copied old code into new code and broke things previously working
+- Removed Debian code, newer `GCC` blew up on QT so either QT needs to be updated or patched outside the scope of `bake` and `bakery`
+- Improved `dishy.sh` by making the cleaning process more robust and inclusinve of the fact that `bakery.sh` allways calls on its dishy
+- Code cleaning for readability and remove stray text
+- Improved [INFO] and [ERROR] readability for 'less chatty' log(s)
+- Improved `bake.sh` AND `bakery.sh` script logic
+- Updated `bakery.sh` Usage Guide
+- Tuning code to be in line with future goal of this system being multi-coin supported
+- In `bakery.sh` When QT is flagged `n` depends is build with `NO_QT=1` this should improve build times signifigantly
+- On `bakery.sh` run, if `dishy.sh` is not found locally, attmepts to download it from GitHub

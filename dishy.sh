@@ -13,6 +13,7 @@ COIN_NAME="${1:-bitoreum}"
 # --- Variables ---
 RUN_DIR="$(pwd -P)"
 BUILD_DIR="$HOME/${COIN_NAME}-build"
+
 SPECIAL_DELIVERY_DIR="$RUN_DIR/special-delivery"
 BAKE_BREAD_LOG="$RUN_DIR/bake_bread.log"
 BAKE_CREAMPIE_LOG="$RUN_DIR/bake_creampie.log"
