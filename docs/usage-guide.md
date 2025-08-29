@@ -113,7 +113,7 @@ Each `.tar.gz` or `*.zip` (for Windows builds) archive will contain:
 After the build, once you have stored the files you want safely you can just erase the bitoreum-build folder by utilizing your very own `dishy.sh`
 
 ```bash
-$HOME/bake/./dishy.sh
+$HOME/bake/./dishy.sh [<coin-name>] # Default is bitoreum
 ```
 ## Command above is destructive so make sure you have moved the file(s) you want out of the `bake` folder FIRST!
 ---
