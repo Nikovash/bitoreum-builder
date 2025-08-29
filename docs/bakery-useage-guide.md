@@ -3,18 +3,22 @@
 This is an extremely streamlined batch maker. Basic usage:
 
 ```bash
-./bakery.sh <branch_or_tag>
+./bakery.sh <branch_or_tag> [<coin name> <Github Repo>]
 # Example:
 ```
 ```bash
-./bakery.sh v4.1.0.0
+./bakery.sh v4.1.0.0 #Defaults to Bitoreum branch 4.1.0.0
+```
+OR
+```bash
+./bakery.sh 3.1.4.20 yerbas https://github.com/The-Yerbas-Endeavor/yerbas #Should build Yerbas Coin in branch 3.1.4.20
 ```
 
 This script will run until it completes or encounters a cross-compilation error, at which point it should exit...
 
 ## The Recipe Book
 
-If `recipe_book.conf` is missing or corrupted, the script will (re)create it. THe following is a visual example, which can also be found in `recipe_book.sample`
+If `recipe_book.conf` is missing or corrupted, the script will (re)create it. The following is a visual example, which can also be found in `recipe_book.sample`
 
 ```diff
 Linux 64-bit,y,QT=y
@@ -41,7 +45,7 @@ The line order above is not important, but the comma-delimited order IS critical
 <Item 1>,<Item 2>,<Item 3> # No space after commas
 ```
 
-- **Item 1**: Build name or `$HOST` // These must match EXACTLY to the eample or the matrix is considered corrupt
+- **Item 1**: Build name or `$HOST` // These must match EXACTLY to the example or the matrix is considered corrupt
 - **Item 2**: Whether this target will be built (`y|n`)
 - **Item 3**: Whether QT will be built
 
