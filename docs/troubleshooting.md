@@ -64,7 +64,7 @@ If that folder is empty, the build did not succeed.
 
 If a build fails OR you want to start over, use `dishy.sh`:
 ```bash
-$HOME/bitoreum-builder/./dishy.sh
+$HOME/bake/./dishy.sh
 ```
 
 ---
@@ -108,11 +108,10 @@ grep error build_debug.log
 ## 📬 Still Stuck?
 
 - Open an issue on GitHub:  
-  [https://github.com/Nikovash/bitoreum-builder/issues](https://github.com/Nikovash/bitoreum-builder/issues)
+  [https://github.com/Nikovash/bake/issues](https://github.com/Nikovash/bake/issues)
 - Include:
   - Your OS and architecture
   - A copy of the error output
   - Any relevant log files
 
 We'll help you get up and building!
-

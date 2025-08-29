@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="BB_logo.png" alt="Project Logo" width="200"/>
+  <img src="assets/BB_logo.png" alt="Project Logo" width="200"/>
 </p>
 
 # 🛠️ Bitoreum Builder
@@ -7,7 +7,7 @@
 A fully automated build script for compiling [Crystal Bitoreum](https://github.com/Nikovash/bitoreum) or other forks.  
 Supports multiple target architectures and generates stripped, not-stripped, and debug builds, each with full checksums and compressed archives.
 
-**Version:** 1.8
+**Version:** 1.9
 
 ---
 
@@ -54,8 +54,8 @@ sudo apt install git -y
 
 ### 🔹 2. Clone and prepare
 ```bash
-git clone https://github.com/Nikovash/bitoreum-builder.git
-cd bitoreum-builder
+git clone https://github.com/Nikovash/bake.git
+cd bake
 (chmod +x bake.sh) // Optional now is shipped with executable enabled by default
 ```
 Launch a screen (Optional but recommended):
@@ -66,13 +66,13 @@ Once insides the screen we can now run the app:
 ```bash
 ./bake.sh
 ```
-On first run the app will update your system and install the bare minimum system packages for use. Optioanl packages for cross compiling are beyond the scope of this document. Come find me I can probably help you!
+On first run the app will update your system and install the bare minimum system packages for use. Optional packages for cross compiling are beyond the scope of this document. Come find me I can probably help you!
 
-Once the system is updated python 3.10.17 will be made an `altinstall`, this is sometimes a requirement of two of the dependancies used. this installes it along side your systems python not as a replacement for it so nothing breaks!
+Once the system is updated python 3.10.17 will be made an `altinstall`, this is sometimes a requirement of two of the dependancies used. this installs it along side your systems python not as a replacement for it so nothing breaks!
 
 Once this is done, you be asked for a branch to `bake` from the default is `main`, though that is not the current release. You can pick from any branch releases will have a `v` in front of them. As an example, at the time of this writing, the current release would be branch `v4.1.0.0`.
 
-One a valid brance is selected you will be asked if you want to include QT, which is the GUI wallet, not everyone needs or wants it, and it is increadably resource heavy. So now if you now need it you can shave a lot of time off your build by not building for it!
+One a valid branch is selected you will be asked if you want to include QT, which is the GUI wallet, not everyone needs or wants it, and it is incredibly resource heavy. So now if you now need it you can shave a lot of time off your build by not building for it!
 
 That is it, unless there is an error, which normally only happens when cross compiling, the script will run and at the end you will have three version in two formats:
 - Build (release)
@@ -89,11 +89,11 @@ You can disconnect the screen at any time by pressing:
 ```bash
 CNTL+A then D
 ```
-And recooenct at any time with:
+And reconnect at any time with:
 ```bash
 screen -r
 ```
-If this is a remote session and the screen is still attached to a screen that was from a dropped connection you can force detact and reattach it to your current session with:
+If this is a remote session and the screen is still attached to a screen that was from a dropped connection you can force detach and reattach it to your current session with:
 ```bash
 screen -D -r
 ```
