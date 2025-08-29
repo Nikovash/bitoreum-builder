@@ -166,6 +166,8 @@ else
 fi
 export PATH="/usr/bin:$PATH"
 
+log "On today's menu: $COIN_NAME; Recipe submitted from - $REPO_URL"
+
 # --- bakery.sh Start Time ---
 START_EPOCH="$(date +%s)"
 START_HUMAN="$(date +"%Y-%m-%d %H:%M:%S %Z")"
