@@ -43,21 +43,42 @@ else
   fi
 fi
 
-# --- Facny coloring and treatment for log ---
-log() {
-  echo -e "\033[1;32m[INFO] $*\033[0m" >> "$LOG_FILE"
-}
-err() {
-  echo -e "\033[1;31m[ERROR] $*\033[0m" >> "$LOG_FILE"
-}
+# --- Fancy coloring and treatment for log ---
+log()  { echo -e "\033[1;32m[INFO]  $*\033[0m" >> "$LOG_FILE"; }
+err()  { echo -e "\033[1;31m[ERROR] $*\033[0m" >> "$LOG_FILE"; }
 
-REPO_PARENT="$HOME/bitoreum-build"
-REPO_ROOT="$REPO_PARENT/bitoreum"
+# --- Parse args (Bitoreum defaults, optional overrides) ---
+if [[ $# -lt 1 ]]; then
+  msg="Usage: $0 <branch_or_tag> [<coin_name> [<repo_url>]]"
+  echo -e "\033[1;31m[ERROR] $msg\033[0m" >&2
+  echo -e "\033[1;31m[ERROR] $msg\033[0m" >> "$LOG_FILE"
+  exit 1
+fi
+BRANCH_OR_TAG="$1"
+
+# Defaults (hardcoded for Bitoreum)
+COIN_NAME="bitoreum"
+REPO_URL="https://github.com/Nikovash/bitoreum"
+
+# Optional overrides
+if [[ $# -ge 2 ]]; then
+  COIN_NAME="$2"
+  if [[ $# -ge 3 ]]; then
+    REPO_URL="$3"
+  else
+    REPO_URL="https://github.com/Nikovash/${COIN_NAME}"
+  fi
+fi
+
+# --- Variables derived from COIN_NAME (must be after overrides) ---
+REPO_PARENT="$HOME/${COIN_NAME}-build"
+REPO_ROOT="$REPO_PARENT/${COIN_NAME}"
+
 DEPENDSDIR="$REPO_ROOT/depends"
 BUILD_BASE="$REPO_PARENT/build"
 COMPRESS_DIR="$REPO_PARENT/compressed"
 SPECIAL_DELIVERY="$RUN_DIR/special-delivery"
-COIN_NAME="bitoreum"
+
 RELEASE_SUFFIX="Release"
 RECIPE_BOOK="${RUN_DIR}/recipe_book.conf"
 
@@ -145,6 +166,8 @@ else
 fi
 export PATH="/usr/bin:$PATH"
 
+log "On today's menu: $COIN_NAME; Recipe submitted from - $REPO_URL"
+
 # --- bakery.sh Start Time ---
 START_EPOCH="$(date +%s)"
 START_HUMAN="$(date +"%Y-%m-%d %H:%M:%S %Z")"
@@ -218,9 +241,9 @@ prepare_repo() {
     git -C "$REPO_ROOT" pull --rebase || true
   else
     log "Cloning branch/tag $BRANCH_OR_TAG..."
-    if ! git clone -b "$BRANCH_OR_TAG" https://github.com/Nikovash/bitoreum "$REPO_ROOT"; then
+    if ! git clone -b "$BRANCH_OR_TAG" "$REPO_URL" "$REPO_ROOT"; then
       log "Branch/tag not found, cloning default then checking out $BRANCH_OR_TAG"
-      git clone https://github.com/Nikovash/bitoreum "$REPO_ROOT"
+      git clone "$REPO_URL" "$REPO_ROOT"
       git -C "$REPO_ROOT" checkout -f "$BRANCH_OR_TAG"
     fi
   fi
@@ -299,19 +322,19 @@ build_target() {
   local binfiles=()
   if [[ "$is_win" == "true" ]]; then
     if [[ "${qt,,}" == "y" ]]; then
-      binfiles=(bitoreum-cli.exe bitoreumd.exe bitoreum-tx.exe qt/bitoreum-qt.exe)
+      binfiles=(${COIN_NAME}-cli.exe ${COIN_NAME}d.exe ${COIN_NAME}-tx.exe qt/${COIN_NAME}-qt.exe)
     else
-      binfiles=(bitoreum-cli.exe bitoreumd.exe bitoreum-tx.exe)
+      binfiles=(${COIN_NAME}-cli.exe ${COIN_NAME}d.exe ${COIN_NAME}-tx.exe)
     fi
   else
     if [[ "${qt,,}" == "y" ]]; then
-      binfiles=(bitoreum-cli bitoreumd bitoreum-tx qt/bitoreum-qt)
+      binfiles=(${COIN_NAME}-cli ${COIN_NAME}d ${COIN_NAME}-tx qt/${COIN_NAME}-qt)
     else
-      binfiles=(bitoreum-cli bitoreumd bitoreum-tx)
+      binfiles=(${COIN_NAME}-cli ${COIN_NAME}d ${COIN_NAME}-tx)
     fi
   fi
 
-  local bin_subdir="bitoreum-v${VERSION}"
+  local bin_subdir="${COIN_NAME}-v${VERSION}"
   local out_dir="${BUILD_BASE}/${bin_subdir}"
   rm -rf "$out_dir"
   mkdir -p "$out_dir" "$COMPRESS_DIR" "$SPECIAL_DELIVERY"
