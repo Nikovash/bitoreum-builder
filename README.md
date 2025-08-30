@@ -2,7 +2,11 @@
   <img src="assets/BB_logo.png" alt="Project Logo" width="200"/>
 </p>
 
-# 🛠️ Bake - The **B**itoreum M**ake**er (formerly 1-click compiler)
+<div align="center">
+<h1>Bake - The Bitoreum Maker<br /></h1>
+<h3>(formerly 1-click compiler)</h3>
+</div>
+
 
 A fully automated build script for compiling [Crystal Bitoreum](https://github.com/Nikovash/bitoreum) or other forks.  
 Supports multiple target architectures and generates stripped, not-stripped, and debug builds, each with full checksums and compressed archives.
