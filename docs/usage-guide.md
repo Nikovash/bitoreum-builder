@@ -46,7 +46,6 @@ The script will prompt you with several options:
 
 You will be asked:
 
-
 Clone from a specific a branch or  tag name (case-sensitive) [branch OR tag-name]:
 
 - Default is `main` branch

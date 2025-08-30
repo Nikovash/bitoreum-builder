@@ -17,30 +17,31 @@ RUN_DIR="$(pwd -P)"
 LOG_FILE="${RUN_DIR}/bakery.log"
 
 # --- Fancy coloring and treatment for log ---
-log()  { echo -e "\033[1;32m[INFO]  $*\033[0m" >> "$LOG_FILE"; }
-err()  { echo -e "\033[1;31m[ERROR] $*\033[0m" >> "$LOG_FILE"; }
+log() { echo -e "\033[1;32m[INFO]  $*\033[0m" >> "$LOG_FILE"; }
+err() { echo -e "\033[1;31m[ERROR] $*\033[0m" >> "$LOG_FILE"; }
 
-# --- Parse args (Bitoreum defaults, optional overrides) ---
+# --- Parse args for Branch/Tag [Coin-name Repo_URL] ---
 if [[ $# -lt 1 ]]; then
-  msg="Usage: $0 <branch_or_tag> [<coin_name> [<repo_url>]]"
+  msg="Usage: $0 <branch_or_tag> [<coin_name> <repo_url>]"
   echo -e "\033[1;31m[ERROR] $msg\033[0m" >&2
   echo -e "\033[1;31m[ERROR] $msg\033[0m" >> "$LOG_FILE"
   exit 1
 fi
 BRANCH_OR_TAG="$1"
 
-# Defaults (hardcoded for Bitoreum)
+# --- Defaults (hardcoded for Bitoreum) ---
 COIN_NAME="bitoreum"
 REPO_URL="https://github.com/Nikovash/bitoreum"
 
-# Optional overrides
-if [[ $# -ge 2 ]]; then
+# --- Optional overrides (must pass BOTH coin name and repo URL) ---
+if [[ $# -ge 3 ]]; then
   COIN_NAME="$2"
-  if [[ $# -ge 3 ]]; then
-    REPO_URL="$3"
-  else
-    REPO_URL="https://github.com/Nikovash/${COIN_NAME}"
-  fi
+  REPO_URL="$3"
+elif [[ $# -ge 2 ]]; then
+  msg="Usage: $0 <branch_or_tag> [<coin_name> <repo_url>]"
+  echo -e "\033[1;31m[ERROR] $msg\033[0m" >&2
+  echo -e "\033[1;31m[ERROR] $msg\033[0m" >> "$LOG_FILE"
+  exit 1
 fi
 
 # --- Ensure dishy.sh exists; try to fetch if missing (now we have $COIN_NAME) ---
@@ -95,17 +96,6 @@ if [[ -f "$VERSION_FILE" ]]; then
 fi
 BAKE_INIT="/opt/bake/bake.log"
 
-# --- Require explicit branch/tag; print to console & log ---
-if [[ $# -lt 1 ]]; then
-  msg="Usage: $0 <branch_or_tag>"
-  # console (stderr) in red
-  echo -e "\033[1;31m[ERROR] $msg\033[0m" >&2
-  # log file
-  echo -e "\033[1;31m[ERROR] $msg\033[0m" >> "$LOG_FILE"
-  exit 1
-fi
-BRANCH_OR_TAG="$1"
-
 # --- Determine if first-run ---
 if [[ ! -f "$BAKE_INIT" ]]; then
     FIRST_RUN=true
@@ -130,7 +120,7 @@ EOF
       git curl build-essential libtool autotools-dev automake pkg-config python3 bsdmainutils cmake \
       libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev libxrender-dev libxft-dev \
       libxrandr-dev libffi-dev g++-aarch64-linux-gnu g++-arm-linux-gnueabihf binutils-aarch64-linux-gnu \
-      binutils-arm-linux-gnueabihf binutils-i686-linux-gnu zip unzip
+      binutils-arm-linux-gnueabihf binutils-i686-linux-gnu zip unzip openssl
 else
     # Update config file on subsequent runs
     sudo tee "$BAKE_INIT" > /dev/null <<EOF
@@ -145,7 +135,7 @@ EOF
       git curl build-essential libtool autotools-dev automake pkg-config python3 bsdmainutils cmake \
       libdb-dev libdb++-dev screen zlib1g-dev libx11-dev libxext-dev libxrender-dev libxft-dev \
       libxrandr-dev libffi-dev g++-aarch64-linux-gnu g++-arm-linux-gnueabihf binutils-aarch64-linux-gnu \
-      binutils-arm-linux-gnueabihf binutils-i686-linux-gnu zip unzip
+      binutils-arm-linux-gnueabihf binutils-i686-linux-gnu zip unzip openssl
 fi
 
 # --- Install Python 3.10.17 altinstall ---
@@ -163,7 +153,7 @@ if [ ! -d "$PYTHON_SRC" ]; then
 else
     log "Python 3.10.17 already installed."
 fi
-export PATH="/usr/bin:$PATH"
+export PATH="$PATH:/usr/bin"
 
 log "On today's menu: $COIN_NAME; Recipe submitted from - $REPO_URL"
 
@@ -173,9 +163,9 @@ START_HUMAN="$(date +"%Y-%m-%d %H:%M:%S %Z")"
 log "Commercial Bake Start: ${START_HUMAN}"
 
 # --- Temp fallback for flaky depends in v4.1.0.0 ---
-if [[ "$BRANCH_OR_TAG" == "v4.1.0.0" ]]; then
-    export FALLBACK_DOWNLOAD_PATH="https://bitoreum.cc/depends/"
-    log "Applied bitoreum.cc fallback for bitoreum-v4.1.0.0"
+if [[ "$COIN_NAME" == "bitoreum" && "$BRANCH_OR_TAG" == "v4.1.0.0" ]]; then
+  export FALLBACK_DOWNLOAD_PATH="https://bitoreum.cc/depends/"
+  log "Applied bitoreum.cc fallback for bitoreum-v4.1.0.0"
 fi
 
 # --- Default recipe book (safe under set -e) ---
@@ -300,9 +290,9 @@ build_target() {
   pushd "$DEPENDSDIR" >/dev/null
   make clean || true
   make distclean || true
-  depends_flags=()
+  local depends_flags=()
   if [[ "${qt,,}" == "n" ]]; then
-    depends_flags+=(NO_QT=1)
+	depends_flags+=(NO_QT=1)
   fi
   make -j"$(nproc)" HOST="$host" "${depends_flags[@]}"
   popd >/dev/null
@@ -321,16 +311,16 @@ build_target() {
   local binfiles=()
   if [[ "$is_win" == "true" ]]; then
     if [[ "${qt,,}" == "y" ]]; then
-      binfiles=(${COIN_NAME}-cli.exe ${COIN_NAME}d.exe ${COIN_NAME}-tx.exe qt/${COIN_NAME}-qt.exe)
-    else
-      binfiles=(${COIN_NAME}-cli.exe ${COIN_NAME}d.exe ${COIN_NAME}-tx.exe)
-    fi
+	    binfiles=("${COIN_NAME}-cli.exe" "${COIN_NAME}d.exe" "qt/${COIN_NAME}-qt.exe")
+	  else
+	    binfiles=("${COIN_NAME}-cli.exe" "${COIN_NAME}d.exe")
+	  fi
   else
-    if [[ "${qt,,}" == "y" ]]; then
-      binfiles=(${COIN_NAME}-cli ${COIN_NAME}d ${COIN_NAME}-tx qt/${COIN_NAME}-qt)
-    else
-      binfiles=(${COIN_NAME}-cli ${COIN_NAME}d ${COIN_NAME}-tx)
-    fi
+	  if [[ "${qt,,}" == "y" ]]; then
+	    binfiles=("${COIN_NAME}-cli" "${COIN_NAME}d" "qt/${COIN_NAME}-qt")
+	  else
+	    binfiles=("${COIN_NAME}-cli" "${COIN_NAME}d")
+	  fi
   fi
 
   local bin_subdir="${COIN_NAME}-v${VERSION}"
@@ -360,10 +350,10 @@ build_target() {
 # --- Checksums inside tree (per-build) ---
   local checksum_file="${out_dir}/checksums-${VERSION}.txt"
   : > "$checksum_file"
-  echo "sha256:" >> "$checksum_file"
-  (cd "$BUILD_BASE" && find "$bin_subdir" -type f -exec shasum -a 256 {} \;) >> "$checksum_file" 2>/dev/null || true
-  echo "openssl-sha256:" >> "$checksum_file"
+  echo "sha256sum:" >> "$checksum_file"
   (cd "$BUILD_BASE" && find "$bin_subdir" -type f -exec sha256sum {} \;) >> "$checksum_file" 2>/dev/null || true
+  echo "openssl-sha256:" >> "$checksum_file"
+  (cd "$BUILD_BASE" && find "$bin_subdir" -type f -exec openssl dgst -sha256 -r {} \;) >> "$checksum_file" 2>/dev/null || true
 
 # --- Archive name and compress ---
   local os_label arch_label archive_name
@@ -422,8 +412,8 @@ GLOBAL_SUM="${SPECIAL_DELIVERY}/checksums-${VERSION}.txt"
 shopt -s nullglob
 for f in "${SPECIAL_DELIVERY}"/*.tar.gz "${SPECIAL_DELIVERY}"/*.zip; do
   [[ -e "$f" ]] || continue
-  echo "sha256: $(shasum -a 256 "$f")" >> "$GLOBAL_SUM"
-  echo "openssl-sha256: $(sha256sum "$f")" >> "$GLOBAL_SUM"
+  echo "sha256sum: $(sha256sum "$f")" >> "$GLOBAL_SUM" || err "sha256sum failed for $f"
+  echo "openssl-sha256: $(openssl dgst -sha256 -r "$f")" >> "$GLOBAL_SUM" || err "openssl sha256 failed for $f"
 done
 log "Wrote global checksums -> ${GLOBAL_SUM}"
 
