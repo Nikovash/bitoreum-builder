@@ -50,6 +50,7 @@ It probes all **ENABLED** nodes from a coin’s `smartnodelist`, checks TCP reac
 | `--banner-read N`      | Number of bytes to attempt reading in banner mode (default: 64). |
 | `--handshake-timeout N`| Timeout waiting for handshake response (default: 8). |
 | `--magic-hex HEX`      | 4-byte network magic (hex). Enables handshake mode. |
+| `-6, --ipv6`           | Also probe IPv6 addresses |
 | `-h, --help`           | Show usage info. |
 
 ---
@@ -122,7 +123,6 @@ Example hourly cron job for `spectre_scan.sh`:
 0 * * * * /bin/bash /home/<username>/spectre_scan.sh --magic-hex 7a72642c >> /home/<username>/cron.log 2>&1
 ```
 <username> here is whatever user the `coind` & `coin-cli` is running from, you should always install this script into that user
-
 ---
 
 ## Naming
