@@ -122,6 +122,7 @@ Example hourly cron job for `spectre_scan.sh`:
 0 * * * * /bin/bash /home/<username>/spectre_scan.sh --magic-hex 7a72642c >> /home/<username>/cron.log 2>&1
 ```
 <username> here is whatever user the `coind` & `coin-cli` is running from, you should always install this script into that user
+
 ---
 
 ## Naming
