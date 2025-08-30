@@ -13,7 +13,7 @@ It probes all **ENABLED** nodes from a coin’s `smartnodelist`, checks TCP reac
   - **OPEN-NO-BANNER** – Port open, but no response within timeout.
   - **GHOST** – Node unreachable.
 - **Multi-coin support**:
-  - Currently only supports IPv4
+  - Supports both IPv4 & IPv6
   - Default coin: **Bitoreum** (`bitoreum-cli`, RPC 8900, P2P 15168).
   - Other coins: pass `--coin`, `--rpc-port`, `--p2p-port`.
 - **Handshake mode** with `--magic-hex` (send proper `version` message, mark node GOOD on any response).
