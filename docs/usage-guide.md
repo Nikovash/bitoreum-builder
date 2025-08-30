@@ -46,9 +46,8 @@ The script will prompt you with several options:
 
 You will be asked:
 
-```
 Clone from a specific a branch or  tag name (case-sensitive) [branch OR tag-name]:
-```
+
 - Default is `main` branch
 - Type any valid branch name EXAMPLE `dev`
 - Or enter any valid branch name (case-sensitive) to use a specific branch
@@ -58,7 +57,7 @@ Clone from a specific a branch or  tag name (case-sensitive) [branch OR tag-name
 
 ### 2 | Select Build Target
 
-```
+```bash
 1) Linux 64-bit        (x86_64-pc-linux-gnu)
 2) Linux 32-bit        (i686-pc-linux-gnu)
 3) Linux ARM 32-bit    (arm-linux-gnueabihf)

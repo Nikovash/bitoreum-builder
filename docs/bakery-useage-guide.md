@@ -44,7 +44,6 @@ The line order above is not important, but the comma-delimited order IS critical
 ```bash
 <Item 1>,<Item 2>,<Item 3> # No space after commas
 ```
-
 - **Item 1**: Build name or `$HOST` // These must match EXACTLY to the example or the matrix is considered corrupt
 - **Item 2**: Whether this target will be built (`y|n`)
 - **Item 3**: Whether QT will be built

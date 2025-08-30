@@ -73,6 +73,7 @@ fi
 # --- Variables derived from COIN_NAME (must be after overrides) ---
 REPO_PARENT="$HOME/${COIN_NAME}-build"
 REPO_ROOT="$REPO_PARENT/${COIN_NAME}"
+
 DEPENDSDIR="$REPO_ROOT/depends"
 BUILD_BASE="$REPO_PARENT/build"
 COMPRESS_DIR="$REPO_PARENT/compressed"
@@ -309,17 +310,17 @@ build_target() {
 # --- Determine binaries to package ---
   local binfiles=()
   if [[ "$is_win" == "true" ]]; then
-	if [[ "${qt,,}" == "y" ]]; then
-	  binfiles=("${COIN_NAME}-cli.exe" "${COIN_NAME}d.exe" "qt/${COIN_NAME}-qt.exe")
-	else
-	  binfiles=("${COIN_NAME}-cli.exe" "${COIN_NAME}d.exe")
-	fi
+    if [[ "${qt,,}" == "y" ]]; then
+	    binfiles=("${COIN_NAME}-cli.exe" "${COIN_NAME}d.exe" "qt/${COIN_NAME}-qt.exe")
+	  else
+	    binfiles=("${COIN_NAME}-cli.exe" "${COIN_NAME}d.exe")
+	  fi
   else
-	if [[ "${qt,,}" == "y" ]]; then
-	  binfiles=("${COIN_NAME}-cli" "${COIN_NAME}d" "qt/${COIN_NAME}-qt")
-	else
-	  binfiles=("${COIN_NAME}-cli" "${COIN_NAME}d")
-	fi
+	  if [[ "${qt,,}" == "y" ]]; then
+	    binfiles=("${COIN_NAME}-cli" "${COIN_NAME}d" "qt/${COIN_NAME}-qt")
+	  else
+	    binfiles=("${COIN_NAME}-cli" "${COIN_NAME}d")
+	  fi
   fi
 
   local bin_subdir="${COIN_NAME}-v${VERSION}"

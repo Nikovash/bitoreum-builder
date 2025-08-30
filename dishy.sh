@@ -23,7 +23,6 @@ PREVIOUS_BAKE_LOG="$RUN_DIR/previous_bake.log"
 log() { printf "\033[1;32m[INFO] %s\033[0m\n" "$@*"; }
 err() { printf "\033[1;31m[ERROR] %s\033[0m\n" "$@" >&2; }
 
-
 # --- Optional: nicer error on exit --- 
 trap 'status=$?; cmd=$BASH_COMMAND; err "dishy failed (exit $status) at line $LINENO: $cmd"' ERR
 
@@ -61,3 +60,4 @@ log "Shredding logs & wiping whiteboard, CHEF"
 rm -f -- "$BAKE_BREAD_LOG" "$BAKE_CREAMPIE_LOG" "$PREVIOUS_BAKE_LOG"
 : > "$BAKERY_LOG"
 log "The kitchen is clean, CHEF..."
+
