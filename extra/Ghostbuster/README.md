@@ -51,7 +51,6 @@ It probes all **ENABLED** nodes from a coin’s `smartnodelist`, checks TCP reac
 | `--handshake-timeout N`| Timeout waiting for handshake response (default: 8). |
 | `--magic-hex HEX`      | 4-byte network magic (hex). Enables handshake mode. |
 | `-h, --help`           | Show usage info. |
-|------------------------|
 
 ---
 
@@ -117,11 +116,12 @@ Report will run again at: 2025-08-30 12:00:00
 
 ## Cron Usage
 
-Example hourly cron job for Bitoreum:
+Example hourly cron job for `spectre_scan.sh`:
 
 ```cron
 0 * * * * /bin/bash /home/<username>/spectre_scan.sh --magic-hex 7a72642c >> /home/<username>/cron.log 2>&1
 ```
+<username> here is whatever user the `coind` & `coin-cli` is running from, you should always install this script into that user
 
 ---
 
@@ -129,3 +129,5 @@ Example hourly cron job for Bitoreum:
 
 The name **Spectre Scan** comes from its job:  
 to detect **ghost (spectre) nodes** and separate them from living peers in the network.
+
+> Next: [Magic Hex List](magic-hex.md)
