@@ -47,6 +47,11 @@ Options:
   --magic-hex HEX            4-byte network magic (hex) to enable handshake mode
   -6, --ipv6                 Also probe IPv6 addresses
   -h, --help                 Show this help
+
+Notes:
+- By default (no --magic-hex), peers that require a version handshake will show as OPEN-NO-BANNER.
+- With --magic-hex, a valid "version" packet is sent; any response marks the node GOOD.
+- Expects Dash/Bitcoin-like 'smartnodelist' structure.
 USAGE
 }
 
@@ -120,6 +125,7 @@ if ! MAP_JSON="$("$CLI_BIN" -rpcport="$RPC_PORT" smartnodelist 2>/dev/null)"; th
   exit 1
 fi
 
+
 # IPv4 / hostnames
 mapfile -t IPS < <(jq -r '
   to_entries[]
@@ -173,13 +179,14 @@ build_version_hex() {
 # ---- Probe ----
 probe() {
   local ip="$1"
-  printf '[%s] [%s] Connect %s:%s\n' "$(date '+%H:%M:%S')" "$COIN" "$ip" "$P2P_PORT" >> "$LOG_FILE"
 
+  printf '[%s] [%s] Connect %s:%s\n' "$(date '+%H:%M:%S')" "$COIN" "$ip" "$P2P_PORT" >> "$LOG_FILE"
   if ! nc -z -w "$CONNECT_TIMEOUT" "$ip" "$P2P_PORT" >/dev/null 2>&1; then
     printf '[%s] %s -> GHOST (connect failed)\n' "$(date '+%H:%M:%S')" "$ip" >> "$LOG_FILE"
     echo "$ip" >> "$TMP_GHOST"
     return
   fi
+
 
   if [[ -n "$MAGIC_HEX" ]]; then
     local msg_hex bytes_read
@@ -198,7 +205,6 @@ probe() {
       return
     fi
   fi
-
   local b_read
   b_read="$(timeout "$BANNER_TIMEOUT" bash -c "exec 3<>/dev/tcp/$ip/$P2P_PORT; dd bs=1 count=$BANNER_READ <&3 2>/dev/null | wc -c" || true)"
   if [[ -n "$b_read" && "$b_read" -gt 0 ]]; then
@@ -241,6 +247,7 @@ PCT_GHOST="$(pct "$COUNT_GHOST" "$TOTAL_NODES")"
 END_TS=$(date +%s)
 RUNTIME=$((END_TS - START_TS))
 RUNTIME_HMS=$(printf "%02d:%02d:%02d" $((RUNTIME/3600)) $((RUNTIME%3600/60)) $((RUNTIME%60)))
+
 
 # ---- Report ----
 {
