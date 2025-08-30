@@ -50,6 +50,7 @@ It probes all **ENABLED** nodes from a coin’s `smartnodelist`, checks TCP reac
 | `--banner-read N`      | Number of bytes to attempt reading in banner mode (default: 64). |
 | `--handshake-timeout N`| Timeout waiting for handshake response (default: 8). |
 | `--magic-hex HEX`      | 4-byte network magic (hex). Enables handshake mode. |
+| `-6, --ipv6`           | Also probe IPv6 addresses |
 | `-h, --help`           | Show usage info. |
 
 ---
